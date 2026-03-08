@@ -1,0 +1,1990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Genora — Smart Medicine Alternative Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg0:      #020408;
+  --bg1:      #060c14;
+  --bg2:      #0b1422;
+  --bg3:      #101c2e;
+  --card:     #0d1824;
+  --card2:    #111f30;
+  --glass:    rgba(13,24,36,0.72);
+  --border:   rgba(0,212,255,0.08);
+  --border2:  rgba(0,212,255,0.18);
+  --border3:  rgba(0,212,255,0.35);
+  --cyan:     #00d4ff;
+  --cyan2:    #00a8cc;
+  --cyan3:    #007a99;
+  --emerald:  #00ffb3;
+  --violet:   #8b5cf6;
+  --violet2:  #6d28d9;
+  --amber:    #fbbf24;
+  --red:      #f87171;
+  --green:    #34d399;
+  --blue:     #60a5fa;
+  --text:     #e8f4f8;
+  --text2:    #94b4c8;
+  --text3:    #4a6680;
+  --glow:     rgba(0,212,255,0.12);
+  --glow2:    rgba(0,212,255,0.25);
+  --glow3:    rgba(139,92,246,0.15);
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+
+body{
+  font-family:'Cabinet Grotesk',sans-serif;
+  background:var(--bg0);
+  color:var(--text);
+  overflow-x:hidden;
+  cursor:default;
+}
+
+
+
+/* ── NOISE OVERLAY ── */
+body::after{
+  content:'';position:fixed;inset:0;z-index:1000;pointer-events:none;
+  opacity:.018;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── GRID BG ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+}
+
+/* ── SCROLL ANIMATIONS ── */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s ease, transform .7s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal-left{opacity:0;transform:translateX(-40px);transition:opacity .7s ease, transform .7s ease;}
+.reveal-left.visible{opacity:1;transform:translateX(0);}
+.reveal-right{opacity:0;transform:translateX(40px);transition:opacity .7s ease, transform .7s ease;}
+.reveal-right.visible{opacity:1;transform:translateX(0);}
+.reveal-scale{opacity:0;transform:scale(0.9);transition:opacity .6s ease, transform .6s ease;}
+.reveal-scale.visible{opacity:1;transform:scale(1);}
+.stagger-1{transition-delay:.05s;}
+.stagger-2{transition-delay:.12s;}
+.stagger-3{transition-delay:.19s;}
+.stagger-4{transition-delay:.26s;}
+.stagger-5{transition-delay:.33s;}
+.stagger-6{transition-delay:.40s;}
+
+/* ══════════════════════════════════════════
+   NAV
+══════════════════════════════════════════ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 48px;
+  background:rgba(2,4,8,0.8);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  transition:background .3s, border-color .3s;
+}
+nav.scrolled{
+  background:rgba(2,4,8,0.95);
+  border-color:var(--border2);
+  box-shadow:0 8px 40px rgba(0,0,0,.6);
+}
+
+.logo{
+  display:flex;align-items:center;gap:10px;
+  text-decoration:none;
+}
+.logo-mark{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,var(--cyan),var(--cyan2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  box-shadow:0 0 18px rgba(0,212,255,.35);
+  transition:transform .3s, box-shadow .3s;
+}
+.logo:hover .logo-mark{transform:rotate(-8deg) scale(1.1);box-shadow:0 0 28px rgba(0,212,255,.55);}
+.logo-text{
+  font-size:1.3rem;font-weight:800;letter-spacing:-.5px;
+  background:linear-gradient(90deg,var(--text),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+
+.nav-links{display:flex;gap:6px;list-style:none;}
+.nav-links a{
+  padding:6px 14px;border-radius:8px;
+  font-size:.8rem;font-weight:600;letter-spacing:.2px;
+  color:var(--text3);text-decoration:none;
+  transition:color .2s, background .2s;
+  position:relative;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:4px;left:50%;right:50%;
+  height:1.5px;background:var(--cyan);
+  transition:left .25s, right .25s;
+  border-radius:2px;
+}
+.nav-links a:hover,
+.nav-links a.active{color:var(--text);}
+.nav-links a:hover::after,
+.nav-links a.active::after{left:14px;right:14px;}
+.nav-links a.active{color:var(--cyan);}
+
+.nav-right{display:flex;align-items:center;gap:10px;}
+.nav-pulse{
+  display:flex;align-items:center;gap:7px;
+  font-size:.68rem;font-weight:600;letter-spacing:.5px;
+  color:var(--emerald);
+  background:rgba(0,255,179,0.07);
+  border:1px solid rgba(0,255,179,0.18);
+  padding:5px 12px;border-radius:100px;
+}
+.nav-pulse .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--emerald);
+  animation:pulse-dot 2s ease infinite;
+  box-shadow:0 0 6px var(--emerald);
+}
+@keyframes pulse-dot{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.6);opacity:.4;}}
+
+.nav-btn{
+  background:linear-gradient(135deg,var(--cyan),var(--cyan2));
+  color:var(--bg0);border:none;cursor:pointer;
+  padding:8px 20px;border-radius:9px;
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:.78rem;font-weight:800;
+  letter-spacing:.3px;
+  transition:transform .2s, box-shadow .2s, opacity .2s;
+  box-shadow:0 0 20px rgba(0,212,255,.25);
+}
+.nav-btn:hover{transform:translateY(-2px);box-shadow:0 0 32px rgba(0,212,255,.45);opacity:.9;}
+.nav-btn:active{transform:translateY(0);}
+
+/* ══════════════════════════════════════════
+   HERO
+══════════════════════════════════════════ */
+.hero{
+  position:relative;z-index:1;
+  min-height:calc(100vh - 64px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:56px 24px 32px;
+  text-align:center;
+  overflow:hidden;
+}
+
+/* Animated orb backgrounds */
+.orb{
+  position:absolute;border-radius:50%;
+  filter:blur(80px);pointer-events:none;
+  animation:orb-float 8s ease-in-out infinite;
+}
+.orb-1{
+  width:600px;height:600px;
+  background:radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+  top:-200px;left:-100px;
+  animation-delay:0s;
+}
+.orb-2{
+  width:500px;height:500px;
+  background:radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 70%);
+  top:100px;right:-100px;
+  animation-delay:-3s;
+}
+.orb-3{
+  width:400px;height:400px;
+  background:radial-gradient(circle, rgba(0,255,179,0.05) 0%, transparent 70%);
+  bottom:-100px;left:50%;
+  animation-delay:-5s;
+}
+@keyframes orb-float{
+  0%,100%{transform:translateY(0) scale(1);}
+  50%{transform:translateY(-30px) scale(1.05);}
+}
+
+/* Floating particles */
+.particles{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.particle{
+  position:absolute;width:2px;height:2px;
+  background:var(--cyan);border-radius:50%;
+  opacity:0;
+  animation:particle-rise var(--dur,8s) var(--del,0s) ease-in infinite;
+}
+@keyframes particle-rise{
+  0%{opacity:0;transform:translateY(100vh) scale(0);}
+  10%{opacity:.6;}
+  90%{opacity:.2;}
+  100%{opacity:0;transform:translateY(-100px) scale(1.5);}
+}
+
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:9px;
+  background:rgba(0,212,255,0.06);
+  border:1px solid var(--border2);
+  padding:6px 18px;border-radius:100px;
+  font-size:.72rem;font-weight:700;letter-spacing:.8px;
+  text-transform:uppercase;color:var(--cyan);
+  margin-bottom:18px;
+  animation:fadeUp .6s ease both;
+}
+.hero-eyebrow .star{animation:spin-slow 4s linear infinite;}
+@keyframes spin-slow{to{transform:rotate(360deg);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+.hero-h1{
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:clamp(2.2rem, 5.2vw, 4.2rem);
+  font-weight:900;letter-spacing:-2px;line-height:.98;
+  animation:fadeUp .6s .08s ease both;
+  max-width:820px;
+}
+.hero-h1 .line-accent{
+  font-family:'Instrument Serif',serif;
+  font-style:italic;
+  background:linear-gradient(90deg,var(--cyan),var(--emerald),var(--violet));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-size:200%;
+  animation:gradient-slide 4s ease infinite;
+}
+@keyframes gradient-slide{
+  0%,100%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+}
+
+.hero-sub{
+  margin-top:14px;font-size:.96rem;color:var(--text2);
+  max-width:520px;line-height:1.7;font-weight:400;
+  animation:fadeUp .6s .16s ease both;
+}
+.hero-sub strong{color:var(--text);font-weight:600;}
+
+/* Mode switcher */
+.mode-switcher{
+  display:flex;gap:3px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border2);
+  border-radius:13px;padding:4px;
+  margin-top:22px;
+  animation:fadeUp .6s .22s ease both;
+}
+.modebt{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 22px;border-radius:10px;
+  border:none;cursor:pointer;
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:.8rem;font-weight:700;
+  color:var(--text3);background:transparent;
+  transition:all .25s;letter-spacing:.2px;
+}
+.modebt.active{
+  background:linear-gradient(135deg,rgba(0,212,255,0.12),rgba(0,212,255,0.06));
+  color:var(--cyan);
+  border:1px solid var(--border2);
+  box-shadow:0 2px 16px rgba(0,212,255,0.1);
+}
+.modebt:hover:not(.active){color:var(--text2);}
+
+/* Input panel */
+.input-panel{
+  width:100%;max-width:640px;
+  margin-top:12px;
+  animation:fadeUp .6s .28s ease both;
+}
+
+/* Text search */
+.text-panel{display:flex;flex-direction:column;gap:9px;}
+.search-field{
+  display:flex;gap:0;
+  background:var(--bg2);
+  border:1.5px solid var(--border2);
+  border-radius:14px;
+  padding:5px 5px 5px 20px;
+  transition:border-color .25s, box-shadow .25s;
+  position:relative;overflow:hidden;
+}
+.search-field::before{
+  content:'';position:absolute;bottom:0;left:0;right:100%;
+  height:1.5px;background:var(--cyan);
+  transition:right .4s ease;
+}
+.search-field:focus-within{
+  border-color:var(--border3);
+  box-shadow:0 0 0 4px var(--glow), 0 8px 40px rgba(0,0,0,.4);
+}
+.search-field:focus-within::before{right:0;}
+.search-field input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:.97rem;font-weight:600;color:var(--text);
+  padding:8px 0;
+}
+.search-field input::placeholder{color:var(--text3);font-weight:400;}
+.search-go{
+  background:linear-gradient(135deg,var(--cyan),var(--cyan2));
+  border:none;cursor:pointer;
+  padding:12px 24px;border-radius:10px;
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:.8rem;font-weight:800;
+  color:var(--bg0);letter-spacing:.3px;
+  display:flex;align-items:center;gap:8px;
+  transition:transform .2s, box-shadow .2s, opacity .2s;
+  box-shadow:0 0 20px rgba(0,212,255,.2);
+  white-space:nowrap;
+}
+.search-go:hover{transform:scale(1.03);box-shadow:0 0 30px rgba(0,212,255,.4);}
+.search-go:active{transform:scale(.98);}
+.search-go svg{transition:transform .2s;}
+.search-go:hover svg{transform:translateX(3px);}
+
+.suggestions{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;}
+.sugg{
+  padding:5px 14px;border-radius:100px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);
+  font-size:.72rem;font-weight:600;color:var(--text3);
+  cursor:pointer;
+  transition:all .2s;
+}
+.sugg:hover{
+  background:var(--glow);color:var(--cyan);
+  border-color:var(--border2);
+  transform:translateY(-2px);
+}
+
+/* Image scan panel */
+.image-panel{display:none;flex-direction:column;gap:14px;}
+.image-panel.on{display:flex;}
+
+.img-types{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.imgtype{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:16px 10px;border-radius:12px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+  cursor:pointer;
+  transition:all .25s;
+}
+.imgtype:hover,.imgtype.on{
+  border-color:var(--border3);
+  background:var(--glow);
+  transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(0,212,255,0.1);
+}
+.imgtype .ico{font-size:22px;transition:transform .25s;}
+.imgtype:hover .ico{transform:scale(1.2);}
+.imgtype .lbl{font-size:.68rem;font-weight:700;letter-spacing:.4px;color:var(--text3);text-transform:uppercase;}
+.imgtype.on .lbl{color:var(--cyan);}
+
+.dropzone{
+  border:1.5px dashed var(--border2);
+  border-radius:14px;padding:40px 24px;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  background:rgba(0,212,255,0.02);
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:all .25s;
+}
+.dropzone:hover{
+  border-color:var(--border3);
+  background:var(--glow);
+  transform:translateY(-2px);
+  box-shadow:0 8px 32px rgba(0,212,255,0.1);
+}
+.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.dz-icon{font-size:32px;transition:transform .3s;}
+.dropzone:hover .dz-icon{transform:translateY(-6px);}
+.dz-title{font-size:.9rem;font-weight:700;}
+.dz-sub{font-size:.72rem;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+
+.cam-row{
+  background:rgba(255,255,255,0.02);
+  border:1px solid var(--border);border-radius:12px;
+  padding:13px;text-align:center;
+  font-size:.8rem;font-weight:600;color:var(--text3);
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+}
+.cam-row:hover{border-color:var(--border2);color:var(--text);background:rgba(255,255,255,0.04);}
+
+/* AI processing */
+.ai-proc{display:none;flex-direction:column;gap:10px;}
+.ai-proc.on{display:flex;}
+.ai-header{display:flex;align-items:center;gap:12px;}
+.ai-spinner{
+  width:28px;height:28px;border-radius:50%;
+  border:2px solid var(--border2);border-top-color:var(--cyan);
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ai-title{font-size:.82rem;font-weight:700;color:var(--text);}
+.ai-steps{display:flex;flex-direction:column;gap:6px;}
+.ai-row{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 14px;border-radius:9px;
+  font-size:.76rem;font-weight:500;
+  border:1px solid transparent;
+  transition:all .3s;
+}
+.ai-row .ai-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background .3s;}
+.ai-row.done{background:rgba(0,255,179,0.05);border-color:rgba(0,255,179,0.15);color:var(--green);}
+.ai-row.done .ai-dot{background:var(--green);box-shadow:0 0 6px var(--green);}
+.ai-row.act{background:var(--glow);border-color:var(--border2);color:var(--cyan);}
+.ai-row.act .ai-dot{background:var(--cyan);animation:blink .6s ease infinite;box-shadow:0 0 6px var(--cyan);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+
+/* Extract confirm */
+.extract-box{display:none;flex-direction:column;gap:12px;}
+.extract-box.on{display:flex;}
+.ext-label{font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);}
+.ext-text{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:10px;
+  padding:14px 16px;font-family:'JetBrains Mono',monospace;
+  font-size:.8rem;color:var(--cyan);line-height:1.6;
+}
+.ext-conf{display:flex;align-items:center;gap:10px;}
+.ext-conf-lbl{font-size:.7rem;color:var(--text3);font-weight:600;white-space:nowrap;}
+.ext-track{flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
+.ext-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:2px;transition:width .8s ease;}
+.ext-pct{font-size:.72rem;font-weight:700;color:var(--green);font-family:'JetBrains Mono',monospace;}
+.ext-btns{display:flex;gap:8px;}
+.ext-btn{
+  flex:1;padding:11px;border-radius:10px;border:none;cursor:pointer;
+  font-family:'Cabinet Grotesk',sans-serif;font-size:.78rem;font-weight:700;
+  transition:all .2s;letter-spacing:.2px;
+}
+.ext-btn.yes{
+  background:linear-gradient(135deg,var(--cyan),var(--cyan2));
+  color:var(--bg0);
+  box-shadow:0 0 18px rgba(0,212,255,.2);
+}
+.ext-btn.yes:hover{transform:translateY(-2px);box-shadow:0 0 28px rgba(0,212,255,.35);}
+.ext-btn.no{background:rgba(255,255,255,.04);color:var(--text3);border:1px solid var(--border);}
+.ext-btn.no:hover{background:rgba(255,255,255,.07);color:var(--text2);}
+
+/* Stats row */
+.hero-stats{
+  display:flex;gap:0;
+  margin-top:60px;
+  animation:fadeUp .6s .36s ease both;
+}
+.hstat{
+  padding:0 44px;text-align:center;
+  border-right:1px solid var(--border);
+  position:relative;
+}
+.hstat:last-child{border-right:none;}
+.hstat-num{
+  font-size:2rem;font-weight:900;letter-spacing:-1.5px;
+  background:linear-gradient(135deg,var(--text),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1;
+}
+.hstat-label{font-size:.7rem;color:var(--text3);margin-top:4px;font-weight:500;letter-spacing:.3px;}
+
+/* scroll indicator */
+.scroll-hint{
+  position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  font-size:.65rem;letter-spacing:1px;text-transform:uppercase;color:var(--text3);
+  animation:fadeUp .6s .5s ease both;
+}
+.scroll-mouse{
+  width:22px;height:34px;border:1.5px solid var(--text3);border-radius:14px;
+  display:flex;justify-content:center;padding-top:6px;
+}
+.scroll-mouse::before{
+  content:'';width:3px;height:6px;background:var(--cyan);border-radius:2px;
+  animation:scroll-ball 1.8s ease infinite;
+}
+@keyframes scroll-ball{
+  0%{transform:translateY(0);opacity:1;}
+  100%{transform:translateY(12px);opacity:0;}
+}
+
+/* ══════════════════════════════════════════
+   RESULTS
+══════════════════════════════════════════ */
+.results-section{
+  position:relative;z-index:1;
+  display:none;
+  max-width:1120px;margin:0 auto;padding:0 28px 100px;
+}
+.results-section.on{display:block;}
+
+/* Image banner */
+.img-banner{
+  display:none;
+  align-items:center;gap:16px;
+  padding:16px 24px;margin-bottom:28px;
+  background:linear-gradient(135deg,rgba(0,212,255,0.05),rgba(139,92,246,0.04));
+  border:1px solid var(--border2);border-radius:14px;
+  animation:fadeUp .4s ease both;
+}
+.img-banner.on{display:flex;}
+.img-banner-icon{font-size:24px;}
+.img-banner-body{flex:1;}
+.img-banner-title{font-size:.88rem;font-weight:700;}
+.img-banner-sub{font-size:.72rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.img-conf{
+  font-size:.68rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:5px 13px;border-radius:7px;
+  background:rgba(52,211,153,.08);color:var(--green);
+  border:1px solid rgba(52,211,153,.2);
+}
+
+/* Prescription list */
+.presc-panel{
+  display:none;
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:16px;overflow:hidden;margin-bottom:28px;
+  animation:fadeUp .4s .05s ease both;
+}
+.presc-panel.on{display:block;}
+.presc-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 22px;
+  background:linear-gradient(90deg,rgba(0,212,255,0.06),rgba(139,92,246,0.04));
+  border-bottom:1px solid var(--border);
+}
+.presc-head-title{font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:8px;}
+.presc-head-sub{font-size:.68rem;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.presc-row{
+  display:grid;grid-template-columns:1fr auto auto auto auto;
+  align-items:center;gap:16px;
+  padding:13px 22px;border-bottom:1px solid var(--border);
+  transition:background .2s;cursor:pointer;
+}
+.presc-row:last-child{border-bottom:none;}
+.presc-row:hover{background:rgba(0,212,255,0.03);}
+.presc-name{font-size:.84rem;font-weight:700;}
+.presc-salt{font-size:.68rem;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.presc-alts{font-size:.72rem;color:var(--cyan);font-weight:700;}
+.presc-price{font-size:.95rem;font-weight:800;font-variant-numeric:tabular-nums;}
+.presc-expand-btn{
+  padding:5px 12px;border-radius:7px;
+  background:transparent;border:1px solid var(--border);
+  font-family:'Cabinet Grotesk',sans-serif;font-size:.68rem;font-weight:700;
+  color:var(--text3);cursor:pointer;letter-spacing:.3px;
+  transition:all .2s;
+}
+.presc-expand-btn:hover{border-color:var(--border2);color:var(--cyan);background:var(--glow);}
+
+/* Section headers */
+.sec-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:18px;
+}
+.sec-label{
+  font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text3);
+  display:flex;align-items:center;gap:10px;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.sec-tag{
+  font-size:.62rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:2px 9px;border-radius:5px;
+  background:var(--glow);color:var(--cyan);
+  border:1px solid var(--border2);
+}
+
+/* Original card */
+.orig-card{
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:18px;padding:24px 28px;
+  margin-bottom:32px;position:relative;overflow:hidden;
+  animation:fadeUp .4s ease both;
+}
+.orig-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--cyan),var(--emerald),var(--violet),transparent);
+  animation:gradient-slide 3s ease infinite;background-size:300%;
+}
+.orig-card::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 60% at 100% 0%, rgba(0,212,255,0.04), transparent);
+  pointer-events:none;
+}
+.orig-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.orig-name{
+  font-size:1.3rem;font-weight:800;letter-spacing:-.5px;line-height:1.2;
+}
+.orig-salt{
+  font-family:'JetBrains Mono',monospace;font-size:.74rem;
+  color:var(--cyan);margin-top:6px;opacity:.85;
+}
+.orig-price-wrap{text-align:right;}
+.orig-price{
+  font-size:2rem;font-weight:900;letter-spacing:-1.5px;
+  background:linear-gradient(135deg,var(--text),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.orig-price-sub{font-size:.68rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.orig-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;}
+.chip{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 12px;border-radius:8px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  font-size:.7rem;font-weight:600;color:var(--text3);
+  transition:all .2s;cursor:default;
+}
+.chip:hover{border-color:var(--border2);color:var(--text2);transform:translateY(-1px);}
+.chip.danger{background:rgba(248,113,113,0.06);border-color:rgba(248,113,113,0.2);color:var(--red);}
+.chip.ok{background:rgba(52,211,153,0.06);border-color:rgba(52,211,153,0.2);color:var(--green);}
+
+/* Alternatives grid */
+.alts-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:14px;margin-bottom:32px;
+}
+.alt-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:20px 22px;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:all .3s cubic-bezier(.22,.68,0,1.2);
+}
+.alt-card::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(0,212,255,0.06), transparent 60%);
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.alt-card:hover{
+  border-color:var(--border2);
+  transform:translateY(-5px) scale(1.01);
+  box-shadow:0 20px 50px rgba(0,0,0,.4), 0 0 0 1px var(--border2);
+}
+.alt-card:hover::after{opacity:1;}
+.alt-card.best{
+  border-color:rgba(52,211,153,0.28);
+  background:linear-gradient(135deg,rgba(52,211,153,0.04),var(--card));
+}
+.best-badge{
+  position:absolute;top:12px;right:12px;
+  font-size:.58rem;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+  padding:3px 8px;border-radius:5px;
+  background:rgba(52,211,153,0.1);color:var(--green);
+  border:1px solid rgba(52,211,153,0.25);
+}
+.alt-num{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--text3);margin-bottom:8px;}
+.alt-name{font-size:.94rem;font-weight:800;line-height:1.3;}
+.alt-mfr{font-size:.72rem;color:var(--text3);margin-top:2px;}
+.alt-bottom{display:flex;align-items:flex-end;justify-content:space-between;margin-top:16px;}
+.alt-price{font-size:1.45rem;font-weight:900;letter-spacing:-1px;line-height:1;}
+.alt-form{font-size:.64rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:3px;}
+.alt-save{font-size:.64rem;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:3px 8px;border-radius:5px;}
+.alt-save.pos{background:rgba(52,211,153,0.08);color:var(--green);border:1px solid rgba(52,211,153,0.2);}
+
+/* Selected alt card */
+.alt-card.selected{
+  border-color:var(--cyan) !important;
+  background:linear-gradient(135deg,rgba(0,212,255,0.07),var(--card)) !important;
+  box-shadow:0 0 0 2px rgba(0,212,255,0.18), 0 16px 40px rgba(0,0,0,.4) !important;
+  transform:translateY(-5px) scale(1.01) !important;
+}
+.alt-card.selected::before{
+  content:'✓ VIEWING';position:absolute;top:12px;right:12px;
+  font-size:.56rem;font-weight:800;letter-spacing:.6px;
+  padding:3px 8px;border-radius:5px;
+  background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.25);
+}
+
+/* Detail panel selected header */
+.detail-selected-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 22px;
+  background:linear-gradient(90deg,rgba(0,212,255,0.05),transparent);
+  border-bottom:1px solid var(--border2);
+}
+.dsh-name{font-size:.94rem;font-weight:800;color:var(--text);}
+.dsh-meta{font-size:.7rem;color:var(--text3);margin-top:2px;font-family:'JetBrains Mono',monospace;}
+.dsh-price{font-size:1.3rem;font-weight:900;letter-spacing:-1px;color:var(--cyan);text-align:right;}
+.dsh-save{font-size:.62rem;font-weight:700;color:var(--green);text-align:right;margin-top:2px;}
+
+/* Sort row */
+.sort-row{display:flex;gap:6px;}
+.srtbt{
+  padding:6px 14px;border-radius:8px;
+  background:transparent;border:1px solid var(--border);
+  font-family:'Cabinet Grotesk',sans-serif;font-size:.7rem;font-weight:700;
+  color:var(--text3);cursor:pointer;letter-spacing:.3px;
+  transition:all .2s;
+}
+.srtbt.on,.srtbt:hover{
+  background:var(--glow);color:var(--cyan);
+  border-color:var(--border2);
+}
+
+/* Detail panel */
+.detail-panel{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:18px;overflow:hidden;
+  animation:fadeUp .4s .15s ease both;
+}
+.detail-tabs{
+  display:flex;gap:0;
+  border-bottom:1px solid var(--border);
+  padding:0 8px;
+  background:rgba(0,0,0,.2);
+  overflow-x:auto;
+}
+.dtab{
+  padding:14px 20px;font-size:.78rem;font-weight:700;
+  color:var(--text3);cursor:pointer;white-space:nowrap;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:color .2s, border-color .2s;letter-spacing:.2px;
+}
+.dtab.active{color:var(--cyan);border-bottom-color:var(--cyan);}
+.dtab:hover:not(.active){color:var(--text2);}
+
+.detail-body{
+  display:grid;grid-template-columns:1fr 1fr;gap:0;
+}
+.detail-col{padding:28px 32px;border-right:1px solid var(--border);}
+.detail-col:last-child{border-right:none;}
+.dcol-title{
+  font-size:.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text3);margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.dcol-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.desc-text{font-size:.84rem;line-height:1.8;color:var(--text2);}
+.desc-text strong{color:var(--text);font-weight:700;}
+
+.int-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;border-bottom:1px solid var(--border);
+  transition:background .2s;
+}
+.int-row:last-child{border-bottom:none;}
+.int-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0;box-shadow:0 0 5px var(--amber);}
+.int-drug{font-size:.82rem;font-weight:700;}
+.int-brand{font-size:.68rem;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.int-badge{
+  margin-left:auto;font-size:.6rem;font-weight:700;letter-spacing:.5px;
+  padding:2px 8px;border-radius:4px;text-transform:uppercase;
+  background:rgba(251,191,36,0.08);color:var(--amber);
+  border:1px solid rgba(251,191,36,0.2);
+}
+
+.rev-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.rev-lbl{font-size:.7rem;color:var(--text3);font-weight:600;width:68px;letter-spacing:.2px;}
+.rev-track{flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;}
+.rev-fill{height:100%;border-radius:3px;transform-origin:left;animation:rev-grow .8s ease both;}
+@keyframes rev-grow{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+.rev-pct{font-size:.7rem;font-weight:800;width:32px;text-align:right;font-family:'JetBrains Mono',monospace;}
+
+/* ══════════════════════════════════════════
+   FEATURES SECTION
+══════════════════════════════════════════ */
+.features-section{
+  position:relative;z-index:1;
+  padding:120px 48px;
+  max-width:1200px;margin:0 auto;
+}
+.section-eyebrow{
+  display:inline-flex;align-items:center;gap:9px;
+  background:rgba(139,92,246,0.07);
+  border:1px solid rgba(139,92,246,0.2);
+  padding:5px 16px;border-radius:100px;
+  font-size:.7rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  color:var(--violet);margin-bottom:20px;
+}
+.section-h2{
+  font-size:clamp(2rem,4vw,3rem);
+  font-weight:900;letter-spacing:-1.5px;line-height:1.1;
+  max-width:500px;margin-bottom:16px;
+}
+.section-h2 em{
+  font-family:'Instrument Serif',serif;font-style:italic;
+  color:var(--cyan);
+}
+.section-sub{font-size:.95rem;color:var(--text2);max-width:420px;line-height:1.7;}
+
+.features-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;
+  margin-top:56px;
+}
+.feat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:28px 26px;
+  position:relative;overflow:hidden;
+  transition:all .3s;
+  cursor:default;
+}
+.feat-card:hover{
+  border-color:var(--border2);
+  transform:translateY(-6px);
+  box-shadow:0 20px 50px rgba(0,0,0,.4);
+}
+.feat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--grd,linear-gradient(90deg,var(--cyan),var(--emerald)));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .4s ease;
+}
+.feat-card:hover::before{transform:scaleX(1);}
+.feat-icon{
+  width:48px;height:48px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;margin-bottom:18px;
+  background:var(--icon-bg,rgba(0,212,255,0.08));
+  border:1px solid var(--icon-border,rgba(0,212,255,0.15));
+  transition:transform .3s;
+}
+.feat-card:hover .feat-icon{transform:scale(1.1) rotate(-5deg);}
+.feat-title{font-size:1rem;font-weight:800;margin-bottom:8px;}
+.feat-desc{font-size:.83rem;color:var(--text2);line-height:1.7;}
+
+/* ══════════════════════════════════════════
+   HOW IT WORKS
+══════════════════════════════════════════ */
+.how-section{
+  position:relative;z-index:1;
+  padding:100px 48px;
+  background:linear-gradient(180deg, transparent, rgba(0,212,255,0.02), transparent);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+}
+.how-inner{max-width:1000px;margin:0 auto;text-align:center;}
+.steps-row{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:0;margin-top:60px;position:relative;
+}
+.steps-row::before{
+  content:'';position:absolute;top:30px;left:12%;right:12%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),var(--border2),transparent);
+}
+.step-item{
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  padding:0 16px;
+  transition:transform .3s;
+}
+.step-item:hover{transform:translateY(-6px);}
+.step-num{
+  width:60px;height:60px;border-radius:50%;
+  background:var(--card);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;font-weight:900;
+  background:linear-gradient(135deg,var(--bg2),var(--card));
+  box-shadow:0 0 0 4px var(--bg0), 0 0 20px rgba(0,212,255,0.1);
+  transition:all .3s;position:relative;z-index:1;
+  color:var(--cyan);
+  font-family:'JetBrains Mono',monospace;
+}
+.step-item:hover .step-num{
+  border-color:var(--border3);
+  box-shadow:0 0 0 4px var(--bg0), 0 0 30px rgba(0,212,255,0.25);
+}
+.step-icon-big{font-size:24px;margin-top:4px;}
+.step-title{font-size:.88rem;font-weight:800;text-align:center;}
+.step-desc{font-size:.76rem;color:var(--text3);text-align:center;line-height:1.6;}
+
+/* ══════════════════════════════════════════
+   FOUNDERS SECTION
+══════════════════════════════════════════ */
+.founders-section{
+  position:relative;z-index:1;
+  padding:120px 48px;
+  max-width:1200px;margin:0 auto;
+  overflow:hidden;
+}
+
+/* Decorative BG */
+.founders-section::before{
+  content:'';position:absolute;
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle, rgba(139,92,246,0.06), transparent 70%);
+  top:-100px;right:-100px;pointer-events:none;
+}
+
+.founders-top{
+  display:grid;grid-template-columns:1fr 1fr;gap:100px;
+  align-items:center;margin-bottom:72px;
+}
+.founders-text{}
+.founders-cards-wrap{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;
+}
+
+.founder-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:32px 28px;
+  position:relative;overflow:hidden;
+  transition:all .4s cubic-bezier(.22,.68,0,1.2);
+  cursor:default;
+}
+.founder-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,212,255,0.05), transparent);
+  opacity:0;transition:opacity .4s;
+}
+.founder-card:first-child::before{
+  background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,212,255,0.07), transparent);
+}
+.founder-card:last-child::before{
+  background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,92,246,0.07), transparent);
+}
+.founder-card:hover{
+  border-color:var(--border2);
+  transform:translateY(-8px) scale(1.01);
+  box-shadow:0 24px 60px rgba(0,0,0,.5);
+}
+.founder-card:hover::before{opacity:1;}
+.founder-card:last-child:hover{
+  border-color:rgba(139,92,246,0.3);
+  box-shadow:0 24px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(139,92,246,0.2);
+}
+
+/* Top stripe */
+.founder-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2.5px;
+  border-radius:2px 2px 0 0;
+}
+.founder-card:first-child::after{
+  background:linear-gradient(90deg, var(--cyan), var(--emerald));
+}
+.founder-card:last-child::after{
+  background:linear-gradient(90deg, var(--violet), var(--blue));
+}
+
+.founder-avatar{
+  width:72px;height:72px;border-radius:18px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:900;
+  margin-bottom:18px;position:relative;
+  transition:transform .3s;
+}
+.founder-card:hover .founder-avatar{transform:scale(1.07) rotate(-3deg);}
+
+.founder-card:first-child .founder-avatar{
+  background:linear-gradient(135deg, rgba(0,212,255,0.12), rgba(0,255,179,0.08));
+  border:1px solid rgba(0,212,255,0.2);
+  box-shadow:0 8px 24px rgba(0,212,255,0.1);
+  color:var(--cyan);
+  font-family:'Cabinet Grotesk',sans-serif;font-size:22px;
+}
+.founder-card:last-child .founder-avatar{
+  background:linear-gradient(135deg, rgba(139,92,246,0.12), rgba(96,165,250,0.08));
+  border:1px solid rgba(139,92,246,0.2);
+  box-shadow:0 8px 24px rgba(139,92,246,0.1);
+  color:var(--violet);
+  font-family:'Cabinet Grotesk',sans-serif;font-size:22px;
+}
+
+.founder-role{
+  font-size:.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:6px;
+  display:flex;align-items:center;gap:6px;
+}
+.founder-card:first-child .founder-role{color:var(--cyan);}
+.founder-card:last-child .founder-role{color:var(--violet);}
+
+.founder-name{
+  font-size:1.05rem;font-weight:900;letter-spacing:-.4px;
+  line-height:1.2;margin-bottom:10px;
+}
+
+.founder-bio{
+  font-size:.8rem;color:var(--text2);line-height:1.7;margin-bottom:18px;
+}
+
+.founder-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+.founder-tag{
+  font-size:.65rem;font-weight:700;letter-spacing:.3px;
+  padding:3px 10px;border-radius:6px;
+}
+.founder-card:first-child .founder-tag{
+  background:rgba(0,212,255,0.07);
+  border:1px solid rgba(0,212,255,0.15);
+  color:var(--cyan);
+}
+.founder-card:last-child .founder-tag{
+  background:rgba(139,92,246,0.07);
+  border:1px solid rgba(139,92,246,0.15);
+  color:var(--violet);
+}
+
+.founder-links{display:flex;gap:8px;}
+.founder-link{
+  padding:7px 14px;border-radius:8px;
+  font-size:.7rem;font-weight:700;letter-spacing:.3px;
+  cursor:pointer;border:none;font-family:'Cabinet Grotesk',sans-serif;
+  transition:all .2s;text-decoration:none;
+  display:flex;align-items:center;gap:5px;
+}
+.founder-card:first-child .founder-link{
+  background:rgba(0,212,255,0.07);
+  border:1px solid rgba(0,212,255,0.15);color:var(--cyan);
+}
+.founder-card:first-child .founder-link:hover{
+  background:rgba(0,212,255,0.14);transform:translateY(-2px);
+}
+.founder-card:last-child .founder-link{
+  background:rgba(139,92,246,0.07);
+  border:1px solid rgba(139,92,246,0.15);color:var(--violet);
+}
+.founder-card:last-child .founder-link:hover{
+  background:rgba(139,92,246,0.14);transform:translateY(-2px);
+}
+
+.founder-number{
+  position:absolute;bottom:20px;right:24px;
+  font-family:'Instrument Serif',serif;font-style:italic;
+  font-size:4rem;font-weight:700;
+  opacity:.04;line-height:1;
+  pointer-events:none;
+}
+
+/* College banner */
+.college-banner{
+  margin-top:56px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;padding:24px 32px;
+  display:flex;align-items:center;gap:20px;
+  transition:border-color .3s;
+}
+.college-banner:hover{border-color:var(--border2);}
+.college-icon{font-size:32px;flex-shrink:0;}
+.college-body{}
+.college-name{font-size:1rem;font-weight:800;margin-bottom:3px;}
+.college-sub{font-size:.8rem;color:var(--text3);}
+.college-tags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.college-tag{
+  font-size:.65rem;font-weight:700;letter-spacing:.3px;
+  padding:3px 10px;border-radius:5px;
+  background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.12);
+  color:var(--cyan);
+}
+
+/* ══════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════ */
+footer{
+  position:relative;z-index:1;
+  border-top:1px solid var(--border);
+  padding:48px;
+  display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;
+  background:var(--bg1);
+}
+.foot-brand{display:flex;flex-direction:column;gap:14px;}
+.foot-logo{display:flex;align-items:center;gap:9px;font-size:1.1rem;font-weight:800;}
+.foot-logo-mark{
+  width:28px;height:28px;border-radius:8px;
+  background:linear-gradient(135deg,var(--cyan),var(--cyan2));
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+.foot-desc{font-size:.8rem;color:var(--text3);line-height:1.7;max-width:240px;}
+.foot-col-title{font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;}
+.foot-links{display:flex;flex-direction:column;gap:9px;}
+.foot-link{font-size:.82rem;color:var(--text3);text-decoration:none;transition:color .2s;}
+.foot-link:hover{color:var(--cyan);}
+.foot-mono{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--text3);line-height:1.9;}
+.foot-mono strong{color:var(--text2);}
+.foot-bottom{
+  margin-top:0;
+  border-top:1px solid var(--border);
+  padding:20px 48px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:.72rem;color:var(--text3);
+  background:var(--bg1);
+  position:relative;z-index:1;
+}
+
+/* ── ANIMATIONS for load ── */
+@keyframes loadIn{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+.li1{animation:loadIn .5s .0s ease both;}
+.li2{animation:loadIn .5s .06s ease both;}
+.li3{animation:loadIn .5s .12s ease both;}
+.li4{animation:loadIn .5s .18s ease both;}
+.li5{animation:loadIn .5s .24s ease both;}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg0);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--border3);}
+
+/* ── LOGIN / SIGNUP BUTTONS ── */
+.btn-login{
+  background:transparent;
+  border:1px solid var(--border2);
+  color:var(--text2);
+  cursor:pointer;
+  padding:8px 20px;border-radius:9px;
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:.78rem;font-weight:700;
+  transition:border-color .2s, color .2s;
+}
+.btn-login:hover{border-color:var(--border3);color:var(--text);}
+.btn-signup{
+  background:linear-gradient(135deg,var(--cyan),var(--cyan2));
+  color:var(--bg0);border:none;cursor:pointer;
+  padding:8px 20px;border-radius:9px;
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:.78rem;font-weight:800;
+  letter-spacing:.3px;
+  transition:transform .2s, box-shadow .2s, opacity .2s;
+  box-shadow:0 0 20px rgba(0,212,255,.25);
+}
+.btn-signup:hover{transform:translateY(-2px);box-shadow:0 0 32px rgba(0,212,255,.45);opacity:.9;}
+.btn-signup:active{transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- PARTICLES -->
+<div class="particles" id="particles"></div>
+
+<!-- ══════════════════════════════════════════
+     NAV
+══════════════════════════════════════════ -->
+<nav id="navbar">
+  <a href="#" class="logo">
+    <div class="logo-mark">⚕</div>
+    <div class="logo-text">Genora</div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#" class="active" onclick="scrollTo({top:0,behavior:'smooth'});return false;">Search</a></li>
+    <li><a href="#features" onclick="smoothNav(this);return false;">Features</a></li>
+    <li><a href="#how" onclick="smoothNav(this);return false;">How it Works</a></li>
+    <li><a href="#founders" onclick="smoothNav(this);return false;">Founders</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-pulse"><div class="dot"></div>AI Active</div>
+    <button class="btn-login">Log In</button>
+    <button class="btn-signup">Sign Up →</button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section class="hero" id="home">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="hero-eyebrow li1">
+    <span class="star">✦</span>
+    India's Smartest Generic Medicine Finder
+    <span>· 7,466 Medicines Indexed</span>
+  </div>
+
+  <h1 class="hero-h1 li2">
+    Find the<br/>
+    <span class="line-accent">cheaper alternative</span><br/>
+    instantly
+  </h1>
+
+  <p class="hero-sub li3">
+    Search by name, <strong>scan a strip</strong>, photograph a prescription or
+    upload a tablet photo. Genora finds every generic alternative — ranked by price — in seconds.
+  </p>
+
+  <!-- Mode switcher -->
+  <div class="mode-switcher li4">
+    <button class="modebt active" id="btn-text" onclick="switchMode('text')">
+      🔍 &ensp;Text Search
+    </button>
+    <button class="modebt" id="btn-image" onclick="switchMode('image')">
+      📷 &ensp;Image Scan
+    </button>
+  </div>
+
+  <!-- Input panel -->
+  <div class="input-panel li5">
+
+    <!-- Text panel -->
+    <div class="text-panel" id="text-panel">
+      <div class="search-field">
+        <input type="text" placeholder="e.g. Augmentin 625, Paracetamol, Metformin 500…"
+               value="Augmentin 625 Duo Tablet" id="search-input"/>
+        <button class="search-go" onclick="showResults('text')">
+          Search
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+      <div class="suggestions">
+        <span class="sugg" onclick="fillQ(this)">Paracetamol 500mg</span>
+        <span class="sugg" onclick="fillQ(this)">Azithromycin 500</span>
+        <span class="sugg" onclick="fillQ(this)">Metformin 500</span>
+        <span class="sugg" onclick="fillQ(this)">Pantoprazole 40mg</span>
+        <span class="sugg" onclick="fillQ(this)">Amoxicillin 250</span>
+      </div>
+    </div>
+
+    <!-- Image panel -->
+    <div class="image-panel" id="image-panel">
+      <div class="img-types">
+        <div class="imgtype on" id="itype-strip" onclick="setType('strip')">
+          <span class="ico">📦</span><span class="lbl">Strip / Box</span>
+        </div>
+        <div class="imgtype" id="itype-presc" onclick="setType('presc')">
+          <span class="ico">📋</span><span class="lbl">Prescription</span>
+        </div>
+        <div class="imgtype" id="itype-tablet" onclick="setType('tablet')">
+          <span class="ico">💊</span><span class="lbl">Tablet</span>
+        </div>
+      </div>
+      <div class="dropzone" id="dropzone" onclick="runAI()">
+        <input type="file" accept="image/*"/>
+        <div class="dz-icon">↑</div>
+        <div class="dz-title">Drop image here or click to upload</div>
+        <div class="dz-sub" id="dz-hint">JPG · PNG · HEIC · Max 10MB</div>
+      </div>
+      <div class="cam-row" onclick="runAI()">📸 &nbsp;Open Camera</div>
+
+      <!-- AI processing -->
+      <div class="ai-proc" id="ai-proc">
+        <div class="ai-header">
+          <div class="ai-spinner"></div>
+          <div class="ai-title" id="ai-title-text">Analyzing image…</div>
+        </div>
+        <div class="ai-steps">
+          <div class="ai-row done" id="as1"><div class="ai-dot"></div>Image loaded &amp; preprocessed (OpenCV)</div>
+          <div class="ai-row act"  id="as2"><div class="ai-dot"></div>Running EasyOCR text extraction…</div>
+          <div class="ai-row"     id="as3"><div class="ai-dot"></div>Filtering medicine name candidates</div>
+          <div class="ai-row"     id="as4"><div class="ai-dot"></div>Fuzzy matching against 7,466 medicines</div>
+        </div>
+      </div>
+
+      <!-- Extract confirm -->
+      <div class="extract-box" id="extract-box">
+        <div class="ext-label">Extracted Text — Please Confirm</div>
+        <div class="ext-text">Augmentin 625 Duo Tablet<br/>Amoxycillin 500mg + Clavulanic Acid 125mg<br/>Glaxo SmithKline Pharmaceuticals</div>
+        <div class="ext-conf">
+          <span class="ext-conf-lbl">Confidence</span>
+          <div class="ext-track"><div class="ext-fill" style="width:91%"></div></div>
+          <span class="ext-pct">91%</span>
+        </div>
+        <div class="ext-btns">
+          <button class="ext-btn yes" onclick="showResults('image')">✓ Confirm &amp; Search</button>
+          <button class="ext-btn no"  onclick="resetScan()">↺ Try Again</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Stats -->
+  <div class="hero-stats">
+    <div class="hstat">
+      <div class="hstat-num" data-target="7466">0</div>
+      <div class="hstat-label">Medicines</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-num" data-target="12675">0</div>
+      <div class="hstat-label">Ingredients</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-num" data-target="49">0</div>
+      <div class="hstat-label">Dosage Forms</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-num" data-target="3">0</div>
+      <div class="hstat-label">AI Scan Types</div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-mouse"></div>
+    Scroll to explore
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     RESULTS
+══════════════════════════════════════════ -->
+<div class="results-section" id="results-wrap">
+
+  <!-- Image banner -->
+  <div class="img-banner" id="img-banner">
+    <div class="img-banner-icon" id="ibanner-icon">📦</div>
+    <div class="img-banner-body">
+      <div class="img-banner-title" id="ibanner-title">Medicine identified from strip photo</div>
+      <div class="img-banner-sub" id="ibanner-sub">Extracted: "Augmentin 625 Duo Tablet · Amoxycillin 500mg + Clavulanic Acid 125mg"</div>
+    </div>
+    <div class="img-conf">91% Confidence</div>
+  </div>
+
+  <!-- Prescription panel -->
+  <div class="presc-panel" id="presc-panel">
+    <div class="presc-head">
+      <div class="presc-head-title">📋 Prescription Scanned — 4 Medicines Found</div>
+      <div class="presc-head-sub">Total alternatives available across all medicines</div>
+    </div>
+    <div class="presc-row"><div><div class="presc-name">Augmentin 625 Tablet</div><div class="presc-salt">Amoxycillin + Clavulanic Acid</div></div><div class="presc-alts">6 alternatives</div><div class="presc-price">₹223.42</div><div></div><button class="presc-expand-btn">View ↓</button></div>
+    <div class="presc-row"><div><div class="presc-name">Pantoprazole 40mg</div><div class="presc-salt">Pantoprazole (40mg)</div></div><div class="presc-alts">12 alternatives</div><div class="presc-price">₹98.00</div><div></div><button class="presc-expand-btn">View ↓</button></div>
+    <div class="presc-row"><div><div class="presc-name">Metformin 500mg</div><div class="presc-salt">Metformin Hydrochloride (500mg)</div></div><div class="presc-alts">18 alternatives</div><div class="presc-price">₹42.50</div><div></div><button class="presc-expand-btn">View ↓</button></div>
+    <div class="presc-row"><div><div class="presc-name">Atorvastatin 10mg</div><div class="presc-salt">Atorvastatin (10mg)</div></div><div class="presc-alts">9 alternatives</div><div class="presc-price">₹75.00</div><div></div><button class="presc-expand-btn">View ↓</button></div>
+  </div>
+
+  <!-- Original -->
+  <div class="sec-head reveal">
+    <div class="sec-label">Searched Medicine <span class="sec-tag">EXACT MATCH</span></div>
+  </div>
+  <div class="orig-card reveal">
+    <div class="orig-top">
+      <div>
+        <div class="orig-name">Augmentin 625 Duo Tablet</div>
+        <div class="orig-salt">Amoxycillin (500mg) + Clavulanic Acid (125mg)</div>
+      </div>
+      <div class="orig-price-wrap">
+        <div class="orig-price">₹223.42</div>
+        <div class="orig-price-sub">per strip of 10</div>
+      </div>
+    </div>
+    <div class="orig-meta">
+      <div class="chip">💊 Tablet</div>
+      <div class="chip">🏭 Glaxo SmithKline</div>
+      <div class="chip">🦠 Broad Spectrum Penicillins</div>
+      <div class="chip ok">✓ Available</div>
+      <div class="chip danger">⚠ 4 Drug Interactions</div>
+    </div>
+  </div>
+
+  <!-- Alts header -->
+  <div class="sec-head reveal">
+    <div class="sec-label">Generic Alternatives <span class="sec-tag">SAME SALT</span></div>
+    <div class="sort-row">
+      <button class="srtbt on">Price ↑</button>
+      <button class="srtbt">Savings</button>
+      <button class="srtbt">Rating</button>
+    </div>
+  </div>
+
+  <!-- Alts grid -->
+  <div class="alts-grid">
+    <div class="alt-card best reveal stagger-1" onmousemove="cardGlow(this,event)" onclick="selectAlt(this,0)">
+      <div class="best-badge">BEST PRICE</div>
+      <div class="alt-num">#01</div>
+      <div class="alt-name">Amoxyclav 625 Tablet</div>
+      <div class="alt-mfr">Abbott</div>
+      <div class="alt-bottom">
+        <div><div class="alt-price">₹223.27</div><div class="alt-form">Tablet · Strip 10</div></div>
+        <span class="alt-save pos">SAVE ₹0.15</span>
+      </div>
+    </div>
+    <div class="alt-card reveal stagger-2" onmousemove="cardGlow(this,event)" onclick="selectAlt(this,1)">
+      <div class="alt-num">#02</div>
+      <div class="alt-name">Moxikind-CV 625 Tablet</div>
+      <div class="alt-mfr">Mankind Pharma</div>
+      <div class="alt-bottom">
+        <div><div class="alt-price">₹185.00</div><div class="alt-form">Tablet · Strip 6</div></div>
+        <span class="alt-save pos">SAVE ₹38.42</span>
+      </div>
+    </div>
+    <div class="alt-card reveal stagger-3" onmousemove="cardGlow(this,event)" onclick="selectAlt(this,2)">
+      <div class="alt-num">#03</div>
+      <div class="alt-name">Clavam 625 Tablet</div>
+      <div class="alt-mfr">Alkem Laboratories</div>
+      <div class="alt-bottom">
+        <div><div class="alt-price">₹168.50</div><div class="alt-form">Tablet · Strip 10</div></div>
+        <span class="alt-save pos">SAVE ₹54.92</span>
+      </div>
+    </div>
+    <div class="alt-card reveal stagger-4" onmousemove="cardGlow(this,event)" onclick="selectAlt(this,3)">
+      <div class="alt-num">#04</div>
+      <div class="alt-name">Augpen 625 Tablet</div>
+      <div class="alt-mfr">Cipla Ltd</div>
+      <div class="alt-bottom">
+        <div><div class="alt-price">₹149.80</div><div class="alt-form">Tablet · Strip 6</div></div>
+        <span class="alt-save pos">SAVE ₹73.62</span>
+      </div>
+    </div>
+    <div class="alt-card reveal stagger-5" onmousemove="cardGlow(this,event)" onclick="selectAlt(this,4)">
+      <div class="alt-num">#05</div>
+      <div class="alt-name">Advent 625 Tablet</div>
+      <div class="alt-mfr">Sun Pharmaceutical</div>
+      <div class="alt-bottom">
+        <div><div class="alt-price">₹138.00</div><div class="alt-form">Tablet · Strip 6</div></div>
+        <span class="alt-save pos">SAVE ₹85.42</span>
+      </div>
+    </div>
+    <div class="alt-card reveal stagger-6" onmousemove="cardGlow(this,event)" onclick="selectAlt(this,5)">
+      <div class="alt-num">#06</div>
+      <div class="alt-name">Novamox CV 625 Tablet</div>
+      <div class="alt-mfr">Novartis India</div>
+      <div class="alt-bottom">
+        <div><div class="alt-price">₹122.40</div><div class="alt-form">Tablet · Strip 6</div></div>
+        <span class="alt-save pos">SAVE ₹101.02</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail panel -->
+  <div class="detail-panel reveal" id="detail-panel">
+    <!-- Selected medicine header — updated on card click -->
+    <div class="detail-selected-header" id="detail-header">
+      <div>
+        <div class="dsh-name" id="dsh-name">Augmentin 625 Duo Tablet</div>
+        <div class="dsh-meta" id="dsh-meta">Glaxo SmithKline · Tablet · Strip of 10 · Amoxycillin 500mg + Clavulanic Acid 125mg</div>
+      </div>
+      <div>
+        <div class="dsh-price" id="dsh-price">₹223.42</div>
+        <div class="dsh-save" id="dsh-save">— Searched Medicine</div>
+      </div>
+    </div>
+    <div class="detail-tabs">
+      <div class="dtab active" onclick="activateTab(this)">Description</div>
+      <div class="dtab" onclick="activateTab(this)">Side Effects</div>
+      <div class="dtab" onclick="activateTab(this)">Drug Interactions</div>
+      <div class="dtab" onclick="activateTab(this)">Reviews</div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-col">
+        <div class="dcol-title">About this Medicine</div>
+        <div class="desc-text" id="detail-desc">
+          <strong>Augmentin 625 Duo Tablet</strong> is a combination antibiotic containing <strong>Amoxycillin</strong> (a penicillin-type antibiotic) and <strong>Clavulanic Acid</strong> (a beta-lactamase inhibitor that prevents bacterial resistance).<br/><br/>
+          <strong>Used for:</strong> Bacterial infections of the ear, sinus, throat, lungs, urinary tract, skin and soft tissue.<br/><br/>
+          <strong>Manufacturer:</strong> Glaxo SmithKline Pharmaceuticals Ltd<br/>
+          <strong>Form:</strong> Tablet — Strip of 10<br/>
+          <strong>Category:</strong> Broad Spectrum Penicillins
+        </div>
+      </div>
+      <div class="detail-col">
+        <div class="dcol-title">Drug Interactions</div>
+        <div id="detail-interactions">
+          <div class="int-row"><div class="int-dot"></div><div><div class="int-drug">Benazepril</div><div class="int-brand">Apriace, Lotensin</div></div><div class="int-badge">Moderate</div></div>
+          <div class="int-row"><div class="int-dot"></div><div><div class="int-drug">Captopril</div><div class="int-brand">Capotril, Aceten</div></div><div class="int-badge">Moderate</div></div>
+          <div class="int-row"><div class="int-dot"></div><div><div class="int-drug">Enalapril</div><div class="int-brand">Enatol, AB-Pril</div></div><div class="int-badge">Moderate</div></div>
+          <div class="int-row"><div class="int-dot"></div><div><div class="int-drug">Fosinopril</div><div class="int-brand">Fovas, Fosinace</div></div><div class="int-badge">Moderate</div></div>
+        </div>
+        <div style="margin-top:22px;">
+          <div class="dcol-title">User Reviews</div>
+          <div class="rev-row"><div class="rev-lbl">Excellent</div><div class="rev-track"><div class="rev-fill" id="rev-exc" style="width:47%;background:var(--green);"></div></div><div class="rev-pct" id="rev-exc-pct" style="color:var(--green)">47%</div></div>
+          <div class="rev-row"><div class="rev-lbl">Average</div><div class="rev-track"><div class="rev-fill" id="rev-avg" style="width:35%;background:var(--amber);"></div></div><div class="rev-pct" id="rev-avg-pct" style="color:var(--amber)">35%</div></div>
+          <div class="rev-row"><div class="rev-lbl">Poor</div><div class="rev-track"><div class="rev-fill" id="rev-poor" style="width:18%;background:var(--red);"></div></div><div class="rev-pct" id="rev-poor-pct" style="color:var(--red)">18%</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FEATURES
+══════════════════════════════════════════ -->
+<section class="features-section" id="features">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-bottom:0;">
+    <div>
+      <div class="section-eyebrow reveal">✦ Why Genora</div>
+      <h2 class="section-h2 reveal">Everything you need to save on <em>medicine</em></h2>
+      <p class="section-sub reveal">Genora combines a massive medicine database, smart AI image recognition, and real-time price comparison into one seamless experience.</p>
+    </div>
+    <div class="reveal reveal-right">
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--emerald));animation:gradient-slide 3s ease infinite;background-size:200%;"></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text3);margin-bottom:12px;">LIVE SEARCH</div>
+        <div style="font-size:1.1rem;font-weight:800;color:var(--cyan);">₹101.02 saved</div>
+        <div style="font-size:.8rem;color:var(--text3);margin-top:4px;">on Augmentin 625 → Novamox CV 625</div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <div style="flex:1;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.18);border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:.65rem;color:var(--red);font-weight:700;margin-bottom:4px;">ORIGINAL</div>
+            <div style="font-weight:900;letter-spacing:-1px;">₹223.42</div>
+          </div>
+          <div style="display:flex;align-items:center;font-size:1.2rem;color:var(--text3);">→</div>
+          <div style="flex:1;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.18);border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:.65rem;color:var(--green);font-weight:700;margin-bottom:4px;">CHEAPEST</div>
+            <div style="font-weight:900;letter-spacing:-1px;">₹122.40</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="features-grid" style="margin-top:72px;">
+    <div class="feat-card reveal stagger-1" style="--grd:linear-gradient(90deg,var(--cyan),var(--emerald));">
+      <div class="feat-icon">🔍</div>
+      <div class="feat-title">Smart Text Search</div>
+      <div class="feat-desc">Search by brand name, salt composition, or manufacturer. Fuzzy matching finds the right medicine even with spelling variations.</div>
+    </div>
+    <div class="feat-card reveal stagger-2" style="--grd:linear-gradient(90deg,var(--violet),var(--blue));--icon-bg:rgba(139,92,246,0.08);--icon-border:rgba(139,92,246,0.15);">
+      <div class="feat-icon">📷</div>
+      <div class="feat-title">AI Image Recognition</div>
+      <div class="feat-desc">Point your camera at a medicine strip, prescription, or tablet. Our AI extracts the medicine name and finds alternatives instantly.</div>
+    </div>
+    <div class="feat-card reveal stagger-3" style="--grd:linear-gradient(90deg,var(--emerald),var(--cyan));--icon-bg:rgba(0,255,179,0.07);--icon-border:rgba(0,255,179,0.15);">
+      <div class="feat-icon">💰</div>
+      <div class="feat-title">Price Comparison</div>
+      <div class="feat-desc">All alternatives sorted cheapest first. See exact savings in rupees. Compare across manufacturers with the same active salt.</div>
+    </div>
+    <div class="feat-card reveal stagger-1" style="--grd:linear-gradient(90deg,var(--amber),var(--red));--icon-bg:rgba(251,191,36,0.07);--icon-border:rgba(251,191,36,0.15);">
+      <div class="feat-icon">⚠️</div>
+      <div class="feat-title">Drug Interactions</div>
+      <div class="feat-desc">Know which medicines interact with each other before taking them. Severity levels and brand names clearly displayed for all interactions.</div>
+    </div>
+    <div class="feat-card reveal stagger-2" style="--grd:linear-gradient(90deg,var(--blue),var(--violet));--icon-bg:rgba(96,165,250,0.07);--icon-border:rgba(96,165,250,0.15);">
+      <div class="feat-icon">📋</div>
+      <div class="feat-title">Prescription Scanner</div>
+      <div class="feat-desc">Upload a full prescription and Genora identifies every medicine on it, finds alternatives for each, and shows total potential savings.</div>
+    </div>
+    <div class="feat-card reveal stagger-3" style="--grd:linear-gradient(90deg,var(--red),var(--violet));--icon-bg:rgba(248,113,113,0.07);--icon-border:rgba(248,113,113,0.15);">
+      <div class="feat-icon">⭐</div>
+      <div class="feat-title">User Reviews</div>
+      <div class="feat-desc">Excellent, Average, and Poor review percentages from real patients. Make informed decisions beyond just price comparison.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     HOW IT WORKS
+══════════════════════════════════════════ -->
+<section class="how-section" id="how">
+  <div class="how-inner">
+    <div class="section-eyebrow reveal" style="display:inline-flex;">✦ Simple as 1 — 2 — 3</div>
+    <h2 class="section-h2 reveal" style="margin:0 auto 12px;text-align:center;">
+      How <em>Genora</em> works
+    </h2>
+    <p class="section-sub reveal" style="margin:0 auto;text-align:center;">
+      From search to savings in under 3 seconds
+    </p>
+    <div class="steps-row">
+      <div class="step-item reveal stagger-1">
+        <div class="step-num">01</div>
+        <div class="step-icon-big">🔍</div>
+        <div class="step-title">Search or Scan</div>
+        <div class="step-desc">Type a medicine name or upload/scan a medicine image using our AI camera</div>
+      </div>
+      <div class="step-item reveal stagger-2">
+        <div class="step-num">02</div>
+        <div class="step-icon-big">🧬</div>
+        <div class="step-title">Salt Matching</div>
+        <div class="step-desc">Genora identifies the active salt composition and finds every generic with the same ingredients</div>
+      </div>
+      <div class="step-item reveal stagger-3">
+        <div class="step-num">03</div>
+        <div class="step-icon-big">📊</div>
+        <div class="step-title">Compare & Choose</div>
+        <div class="step-desc">Browse alternatives sorted by price, view interactions, side effects and reviews</div>
+      </div>
+      <div class="step-item reveal stagger-4">
+        <div class="step-num">04</div>
+        <div class="step-icon-big">💊</div>
+        <div class="step-title">Save Money</div>
+        <div class="step-desc">Pick the cheapest safe alternative and save up to 50% on your medicine bill</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     FOUNDERS
+══════════════════════════════════════════ -->
+<section class="founders-section" id="founders">
+  <div class="founders-top">
+    <div>
+      <div class="section-eyebrow reveal">✦ The Team</div>
+      <h2 class="section-h2 reveal">Built by two<br/><em>passionate</em><br/>developers</h2>
+      <p class="section-sub reveal">
+        Genora was born out of a shared frustration — watching families overpay for branded medicines when identical generic alternatives existed. Two final-year Computer Science students decided to fix that.
+      </p>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px 32px;" class="reveal reveal-right">
+      <div style="font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:18px;">PROJECT STATS</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div><div style="font-size:1.6rem;font-weight:900;letter-spacing:-1px;color:var(--cyan);">7,466</div><div style="font-size:.7rem;color:var(--text3);">medicines indexed</div></div>
+        <div><div style="font-size:1.6rem;font-weight:900;letter-spacing:-1px;color:var(--emerald);">12,675</div><div style="font-size:.7rem;color:var(--text3);">ingredient records</div></div>
+        <div><div style="font-size:1.6rem;font-weight:900;letter-spacing:-1px;color:var(--violet);">3</div><div style="font-size:.7rem;color:var(--text3);">AI scan modes</div></div>
+        <div><div style="font-size:1.6rem;font-weight:900;letter-spacing:-1px;color:var(--blue);">₹0</div><div style="font-size:.7rem;color:var(--text3);">AI API cost</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Single combined founders card -->
+  <div class="reveal" style="
+    background:var(--card);border:1px solid var(--border2);border-radius:20px;
+    padding:36px 40px;position:relative;overflow:hidden;margin-top:12px;
+  ">
+    <!-- top accent line -->
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--emerald),transparent);"></div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+      <div>
+        <div style="font-size:.63rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">CO-FOUNDERS</div>
+        <div style="font-size:1.05rem;font-weight:800;">Genora is built by two final-year CS students from Kerala</div>
+        <div style="font-size:.8rem;color:var(--text3);margin-top:4px;">🎓 Nirmala College, Muvattupuzha · Integrated M.Sc. CS &amp; Data Science · MG University</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+      <!-- Karthik -->
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:24px;position:relative;overflow:hidden;">
+        <div style="position:absolute;bottom:16px;right:20px;font-family:'Instrument Serif',serif;font-style:italic;font-size:3.5rem;opacity:.04;pointer-events:none;">01</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(0,212,255,.12),rgba(0,255,179,.08));border:1px solid rgba(0,212,255,.2);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:var(--cyan);flex-shrink:0;">KU</div>
+          <div>
+            <div style="font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--cyan);margin-bottom:2px;">Co-Founder · Frontend</div>
+            <div style="font-size:.95rem;font-weight:900;letter-spacing:-.3px;">Karthik Unnikrishnan</div>
+          </div>
+        </div>
+        <div style="font-size:.79rem;color:var(--text2);line-height:1.7;margin-bottom:14px;">
+          Leads all frontend development — React interface, AI image upload UI, and user experience. Founder of <strong style="color:var(--cyan);">Bright Future</strong>, a student initiative for career guidance.
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:.64rem;font-weight:700;padding:3px 10px;border-radius:6px;background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.15);color:var(--cyan);">React · Vite</span>
+          <span style="font-size:.64rem;font-weight:700;padding:3px 10px;border-radius:6px;background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.15);color:var(--cyan);">Tailwind CSS</span>
+          <span style="font-size:.64rem;font-weight:700;padding:3px 10px;border-radius:6px;background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.15);color:var(--cyan);">Bright Future</span>
+        </div>
+      </div>
+
+      <!-- Fidha -->
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:24px;position:relative;overflow:hidden;">
+        <div style="position:absolute;bottom:16px;right:20px;font-family:'Instrument Serif',serif;font-style:italic;font-size:3.5rem;opacity:.04;pointer-events:none;">02</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(96,165,250,.08));border:1px solid rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:var(--violet);flex-shrink:0;">FF</div>
+          <div>
+            <div style="font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--violet);margin-bottom:2px;">Co-Founder · Backend</div>
+            <div style="font-size:.95rem;font-weight:900;letter-spacing:-.3px;">Fidha Fathima Salim</div>
+          </div>
+        </div>
+        <div style="font-size:.79rem;color:var(--text2);line-height:1.7;margin-bottom:14px;">
+          Architects the full backend — PostgreSQL, FastAPI, AI pipeline (EasyOCR, OpenCV, Moondream2), and deployment. Founder of <strong style="color:var(--violet);">HireHub</strong>, connecting students with jobs and internships.
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:.64rem;font-weight:700;padding:3px 10px;border-radius:6px;background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.15);color:var(--violet);">FastAPI · Python</span>
+          <span style="font-size:.64rem;font-weight:700;padding:3px 10px;border-radius:6px;background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.15);color:var(--violet);">PostgreSQL</span>
+          <span style="font-size:.64rem;font-weight:700;padding:3px 10px;border-radius:6px;background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.15);color:var(--violet);">HireHub</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer>
+  <div class="foot-brand">
+    <div class="foot-logo">
+      <div class="foot-logo-mark">⚕</div>
+      Genora
+    </div>
+    <div class="foot-desc">India's smart medicine alternative finder. Helping patients save money without compromising on health since 2025.</div>
+  </div>
+  <div>
+    <div class="foot-col-title">Navigate</div>
+    <div class="foot-links">
+      <a href="#" class="foot-link">Search</a>
+      <a href="#features" class="foot-link">Features</a>
+      <a href="#how" class="foot-link">How it Works</a>
+      <a href="#founders" class="foot-link">Founders</a>
+    </div>
+  </div>
+  <div>
+    <div class="foot-col-title">Product</div>
+    <div class="foot-links">
+      <a href="#" class="foot-link">API Access</a>
+      <a href="#" class="foot-link">Categories</a>
+      <a href="#" class="foot-link">Interactions</a>
+      <a href="#" class="foot-link">Image Scan</a>
+    </div>
+  </div>
+  <div>
+    <div class="foot-col-title">Technical</div>
+    <div class="foot-mono">
+      <strong>7,466</strong> medicines<br/>
+      <strong>12,675</strong> ingredients<br/>
+      FastAPI · PostgreSQL<br/>
+      React · Vite · Tailwind<br/>
+      EasyOCR · Moondream2
+    </div>
+  </div>
+</footer>
+<div class="foot-bottom">
+  <div>© 2025 Genora · Built by Karthik Unnikrishnan &amp; Fidha Fathima Salim · Nirmala College, Muvattupuzha</div>
+  <div>Built for India's healthcare access · All Free Tier Deployment</div>
+</div>
+
+<script>
+
+
+// ── PARTICLES ─────────────────────────────
+const pc = document.getElementById('particles');
+for(let i=0;i<28;i++){
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.cssText = `left:${Math.random()*100}%;--dur:${6+Math.random()*10}s;--del:${Math.random()*8}s;`;
+  if(Math.random()>.7) { p.style.background='var(--emerald)'; p.style.width='1.5px'; p.style.height='1.5px'; }
+  pc.appendChild(p);
+}
+
+// ── NAV SCROLL ────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// ── SMOOTH NAV ────────────────────────────
+function smoothNav(el) {
+  const t = el.getAttribute('href');
+  if(t && t!=='#') document.querySelector(t)?.scrollIntoView({behavior:'smooth'});
+}
+
+// ── SCROLL REVEAL ─────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting) { e.target.classList.add('visible'); }
+  });
+}, { threshold:0.12 });
+document.querySelectorAll('.reveal,.reveal-left,.reveal-right,.reveal-scale').forEach(el => observer.observe(el));
+
+// ── COUNT-UP ─────────────────────────────
+const counters = document.querySelectorAll('[data-target]');
+const countObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(!e.isIntersecting) return;
+    const el = e.target, target = +el.dataset.target;
+    let cur = 0, step = Math.ceil(target/60);
+    const tick = () => {
+      cur = Math.min(cur+step, target);
+      el.textContent = cur.toLocaleString('en-IN');
+      if(cur < target) requestAnimationFrame(tick);
+    };
+    tick();
+    countObs.unobserve(el);
+  });
+}, { threshold:.5 });
+counters.forEach(c => countObs.observe(c));
+
+// ── CARD GLOW ────────────────────────────
+function cardGlow(el, e) {
+  const r = el.getBoundingClientRect();
+  el.style.setProperty('--mx', ((e.clientX-r.left)/r.width*100)+'%');
+  el.style.setProperty('--my', ((e.clientY-r.top)/r.height*100)+'%');
+}
+
+// ── SELECT ALT CARD ──────────────────────
+const altData = [
+  {
+    name: 'Amoxyclav 625 Tablet',
+    meta: 'Abbott · Tablet · Strip of 10 · Amoxycillin 500mg + Clavulanic Acid 125mg',
+    price: '₹223.27', save: 'Save ₹0.15 vs original',
+    desc: '<strong>Amoxyclav 625 Tablet</strong> by Abbott is a generic equivalent of Augmentin containing the same salts — <strong>Amoxycillin (500mg)</strong> and <strong>Clavulanic Acid (125mg)</strong>.<br/><br/><strong>Used for:</strong> Bacterial infections of the ear, sinus, throat, lungs, urinary tract, skin and soft tissue.<br/><br/><strong>Manufacturer:</strong> Abbott India Ltd<br/><strong>Form:</strong> Tablet — Strip of 10<br/><strong>Category:</strong> Broad Spectrum Penicillins',
+    interactions: [
+      {drug:'Benazepril',brand:'Apriace, Lotensin',level:'Moderate'},
+      {drug:'Captopril',brand:'Capotril, Aceten',level:'Moderate'},
+      {drug:'Enalapril',brand:'Enatol, AB-Pril',level:'Moderate'},
+    ],
+    reviews: [52, 32, 16]
+  },
+  {
+    name: 'Moxikind-CV 625 Tablet',
+    meta: 'Mankind Pharma · Tablet · Strip of 6 · Amoxycillin 500mg + Clavulanic Acid 125mg',
+    price: '₹185.00', save: 'Save ₹38.42 vs original',
+    desc: '<strong>Moxikind-CV 625 Tablet</strong> by Mankind Pharma is an affordable generic antibiotic combining <strong>Amoxycillin (500mg)</strong> and <strong>Clavulanic Acid (125mg)</strong>.<br/><br/><strong>Used for:</strong> Ear, nose, throat, lower respiratory tract, urinary tract and skin infections.<br/><br/><strong>Manufacturer:</strong> Mankind Pharma Ltd<br/><strong>Form:</strong> Tablet — Strip of 6<br/><strong>Category:</strong> Broad Spectrum Penicillins',
+    interactions: [
+      {drug:'Benazepril',brand:'Apriace, Lotensin',level:'Moderate'},
+      {drug:'Lisinopril',brand:'Lisoril, Zestril',level:'Moderate'},
+    ],
+    reviews: [44, 38, 18]
+  },
+  {
+    name: 'Clavam 625 Tablet',
+    meta: 'Alkem Laboratories · Tablet · Strip of 10 · Amoxycillin 500mg + Clavulanic Acid 125mg',
+    price: '₹168.50', save: 'Save ₹54.92 vs original',
+    desc: '<strong>Clavam 625 Tablet</strong> manufactured by Alkem Laboratories contains <strong>Amoxycillin (500mg)</strong> and <strong>Clavulanic Acid (125mg)</strong>, same therapeutic profile as Augmentin.<br/><br/><strong>Used for:</strong> Bacterial infections including lower respiratory, skin, and urinary tract infections.<br/><br/><strong>Manufacturer:</strong> Alkem Laboratories Ltd<br/><strong>Form:</strong> Tablet — Strip of 10<br/><strong>Category:</strong> Broad Spectrum Penicillins',
+    interactions: [
+      {drug:'Captopril',brand:'Capotril, Aceten',level:'Moderate'},
+      {drug:'Enalapril',brand:'Enatol, AB-Pril',level:'Moderate'},
+      {drug:'Warfarin',brand:'Warf, Uniwarfin',level:'Moderate'},
+    ],
+    reviews: [50, 30, 20]
+  },
+  {
+    name: 'Augpen 625 Tablet',
+    meta: 'Cipla Ltd · Tablet · Strip of 6 · Amoxycillin 500mg + Clavulanic Acid 125mg',
+    price: '₹149.80', save: 'Save ₹73.62 vs original',
+    desc: '<strong>Augpen 625 Tablet</strong> by Cipla is a trusted generic with <strong>Amoxycillin (500mg)</strong> and <strong>Clavulanic Acid (125mg)</strong>, manufactured by one of India\'s largest pharma companies.<br/><br/><strong>Used for:</strong> Lower respiratory tract, urinary tract, skin, and dental infections.<br/><br/><strong>Manufacturer:</strong> Cipla Ltd<br/><strong>Form:</strong> Tablet — Strip of 6<br/><strong>Category:</strong> Broad Spectrum Penicillins',
+    interactions: [
+      {drug:'Benazepril',brand:'Apriace, Lotensin',level:'Moderate'},
+      {drug:'Enalapril',brand:'Enatol, AB-Pril',level:'Moderate'},
+    ],
+    reviews: [55, 28, 17]
+  },
+  {
+    name: 'Advent 625 Tablet',
+    meta: 'Sun Pharmaceutical · Tablet · Strip of 6 · Amoxycillin 500mg + Clavulanic Acid 125mg',
+    price: '₹138.00', save: 'Save ₹85.42 vs original',
+    desc: '<strong>Advent 625 Tablet</strong> by Sun Pharmaceutical Industries contains <strong>Amoxycillin (500mg)</strong> and <strong>Clavulanic Acid (125mg)</strong>, offering significant savings over the branded version.<br/><br/><strong>Used for:</strong> Ear, sinus, throat, lung, urinary and skin bacterial infections.<br/><br/><strong>Manufacturer:</strong> Sun Pharmaceutical Industries<br/><strong>Form:</strong> Tablet — Strip of 6<br/><strong>Category:</strong> Broad Spectrum Penicillins',
+    interactions: [
+      {drug:'Captopril',brand:'Capotril, Aceten',level:'Moderate'},
+      {drug:'Fosinopril',brand:'Fovas, Fosinace',level:'Moderate'},
+    ],
+    reviews: [48, 34, 18]
+  },
+  {
+    name: 'Novamox CV 625 Tablet',
+    meta: 'Novartis India · Tablet · Strip of 6 · Amoxycillin 500mg + Clavulanic Acid 125mg',
+    price: '₹122.40', save: 'Save ₹101.02 vs original — BEST SAVING',
+    desc: '<strong>Novamox CV 625 Tablet</strong> by Novartis India is the most affordable alternative with identical composition — <strong>Amoxycillin (500mg)</strong> and <strong>Clavulanic Acid (125mg)</strong>. Save over ₹100 per strip.<br/><br/><strong>Used for:</strong> All standard Augmentin indications including respiratory, urinary and skin infections.<br/><br/><strong>Manufacturer:</strong> Novartis India Ltd<br/><strong>Form:</strong> Tablet — Strip of 6<br/><strong>Category:</strong> Broad Spectrum Penicillins',
+    interactions: [
+      {drug:'Benazepril',brand:'Apriace, Lotensin',level:'Moderate'},
+      {drug:'Captopril',brand:'Capotril, Aceten',level:'Moderate'},
+      {drug:'Methotrexate',brand:'Folitrax, Biotrexate',level:'Minor'},
+    ],
+    reviews: [41, 40, 19]
+  }
+];
+
+function selectAlt(el, idx) {
+  // Highlight card
+  document.querySelectorAll('.alt-card').forEach(c => c.classList.remove('selected'));
+  // Remove any stagger best-badge that might conflict
+  el.classList.add('selected');
+
+  const d = altData[idx];
+
+  // Header
+  document.getElementById('dsh-name').textContent  = d.name;
+  document.getElementById('dsh-meta').textContent  = d.meta;
+  document.getElementById('dsh-price').textContent = d.price;
+  document.getElementById('dsh-save').textContent  = d.save;
+
+  // Description
+  document.getElementById('detail-desc').innerHTML = d.desc;
+
+  // Interactions
+  document.getElementById('detail-interactions').innerHTML = d.interactions.map(i =>
+    `<div class="int-row"><div class="int-dot"></div><div><div class="int-drug">${i.drug}</div><div class="int-brand">${i.brand}</div></div><div class="int-badge">${i.level}</div></div>`
+  ).join('');
+
+  // Reviews
+  const [exc, avg, poor] = d.reviews;
+  document.getElementById('rev-exc').style.width  = exc+'%';
+  document.getElementById('rev-avg').style.width  = avg+'%';
+  document.getElementById('rev-poor').style.width = poor+'%';
+  document.getElementById('rev-exc-pct').textContent  = exc+'%';
+  document.getElementById('rev-avg-pct').textContent  = avg+'%';
+  document.getElementById('rev-poor-pct').textContent = poor+'%';
+
+  // Reset tabs to Description
+  document.querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.dtab').classList.add('active');
+
+  // Scroll detail panel into view smoothly
+  document.getElementById('detail-panel').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+// ── MODE SWITCH ──────────────────────────
+let currentType = 'strip';
+function switchMode(m) {
+  document.getElementById('btn-text').classList.toggle('active', m==='text');
+  document.getElementById('btn-image').classList.toggle('active', m==='image');
+  document.getElementById('text-panel').style.display = m==='text' ? 'flex' : 'none';
+  const ip = document.getElementById('image-panel');
+  ip.style.display = m==='image' ? 'flex' : 'none';
+  document.getElementById('results-wrap').classList.remove('on');
+  resetScan();
+}
+
+const hints = {
+  strip:'JPG · PNG · HEIC · Strip or box photo',
+  presc:'JPG · PNG · PDF · Doctor prescription',
+  tablet:'JPG · PNG · Clear tablet photo'
+};
+function setType(t) {
+  currentType = t;
+  ['strip','presc','tablet'].forEach(x => {
+    document.getElementById('itype-'+x).classList.toggle('on', x===t);
+  });
+  document.getElementById('dz-hint').textContent = hints[t];
+}
+
+function runAI() {
+  document.getElementById('dropzone').style.display='none';
+  document.querySelector('.cam-row').style.display='none';
+  const proc = document.getElementById('ai-proc');
+  proc.classList.add('on');
+  ['as1','as2','as3','as4'].forEach(id => document.getElementById(id).className='ai-row');
+  document.getElementById('as1').className='ai-row done';
+  document.getElementById('as2').className='ai-row act';
+  let i=1;
+  const msgs=['Image loaded…','Extracting text…','Filtering names…','Matching DB…'];
+  const iv = setInterval(() => {
+    if(i<4){
+      document.getElementById('as'+(i+1)).className='ai-row done';
+      document.getElementById('ai-title-text').textContent=msgs[Math.min(i+1,3)];
+      if(i+1<4) document.getElementById('as'+(i+2)).className='ai-row act';
+      i++;
+    } else {
+      clearInterval(iv);
+      setTimeout(()=>{
+        proc.classList.remove('on');
+        document.getElementById('extract-box').classList.add('on');
+      }, 400);
+    }
+  }, 650);
+}
+
+function resetScan() {
+  document.getElementById('dropzone').style.display='flex';
+  document.querySelector('.cam-row').style.display='flex';
+  document.getElementById('ai-proc').classList.remove('on');
+  document.getElementById('extract-box').classList.remove('on');
+}
+
+function showResults(mode) {
+  const wrap = document.getElementById('results-wrap');
+  wrap.classList.add('on');
+  const banner = document.getElementById('img-banner');
+  const presc = document.getElementById('presc-panel');
+  if(mode==='image'){
+    banner.classList.add('on');
+    if(currentType==='presc'){
+      presc.classList.add('on');
+      document.getElementById('ibanner-icon').textContent='📋';
+      document.getElementById('ibanner-title').textContent='Prescription scanned — 4 medicines identified';
+      document.getElementById('ibanner-sub').textContent='Augmentin 625 · Pantoprazole 40mg · Metformin 500mg · Atorvastatin 10mg';
+    } else {
+      presc.classList.remove('on');
+    }
+    document.getElementById('extract-box').classList.remove('on');
+  } else {
+    banner.classList.remove('on');
+    presc.classList.remove('on');
+  }
+  setTimeout(() => wrap.scrollIntoView({behavior:'smooth', block:'start'}), 80);
+  // Re-trigger reveal
+  document.querySelectorAll('#results-wrap .reveal').forEach(el => {
+    el.classList.remove('visible');
+    setTimeout(() => observer.observe(el), 100);
+  });
+}
+
+function fillQ(el) {
+  document.getElementById('search-input').value = el.textContent;
+  document.querySelector('.search-field').classList.add('focused');
+}
+
+// ── TABS ─────────────────────────────────
+function activateTab(el) {
+  document.querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── SORT BTNS ─────────────────────────────
+document.querySelectorAll('.srtbt').forEach(b => {
+  b.addEventListener('click', () => {
+    b.closest('.sort-row').querySelectorAll('.srtbt').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  });
+});
+
+// Auto show results on load for demo
+setTimeout(() => showResults('text'), 500);
+</script>
+</body>
+</html>
