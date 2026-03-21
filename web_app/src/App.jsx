@@ -102,10 +102,6 @@ export default function App() {
         {/* LEFT — headline */}
         <div className="hero-left">
           <div className="hero-badge">
-            <div className="bdot" style={{
-              width:'6px', height:'6px', borderRadius:'50%',
-              background:'var(--green)', animation:'pulse 2s ease infinite'
-            }} />
             India's Generic Medicine Finder · 7,466 Medicines
           </div>
 
@@ -128,12 +124,12 @@ export default function App() {
             <button
               className={`modebt${mode==='text'?' active':''}`}
               onClick={()=>setMode('text')}>
-              🔍 &nbsp;Text Search
+              Text Search
             </button>
             <button
               className={`modebt${mode==='image'?' active':''}`}
               onClick={()=>setMode('image')}>
-              📷 &nbsp;Image Scan
+              Image Scan
             </button>
           </div>
 
@@ -210,9 +206,9 @@ export default function App() {
               </div>
             </div>
             <div className="orig-meta">
-              <div className="chip">💊 {results.medicine.form}</div>
-              <div className="chip">🏭 {results.medicine.manufacturer}</div>
-              <div className="chip ok">✓ Available</div>
+              <div className="chip">{results.medicine.form}</div>
+              <div className="chip">{results.medicine.manufacturer}</div>
+              <div className="chip ok">Available</div>
             </div>
           </div>
 
@@ -296,7 +292,7 @@ export default function App() {
       {/* ── FEATURES ───────────────────────── */}
       <section className="features-section" id="features">
         <div style={{marginBottom:'48px'}}>
-          <div className="section-pill">✦ Why Genora</div>
+          <div className="section-pill">Why Genora</div>
           <h2 className="section-h2">Everything you need to<br/>save on <em>medicine</em></h2>
           <p className="section-sub">Genora combines a massive medicine database, 
           smart AI image recognition, and real-time price comparison.</p>
@@ -304,15 +300,14 @@ export default function App() {
 
         <div className="features-grid">
           {[
-            { icon: "🔍", title: "Smart Text Search", desc: "Search by brand name, salt composition, or manufacturer. Fuzzy matching finds the right medicine even with spelling variations." },
-            { icon: "📷", title: "AI Image Recognition", desc: "Photograph any medicine strip, box, prescription or tablet. Our AI extracts the name and finds alternatives instantly." },
-            { icon: "💰", title: "Price Comparison", desc: "All generic alternatives sorted cheapest first. Compare prices across every manufacturer for the exact same active ingredient." },
-            { icon: "⚠️", title: "Drug Interactions", desc: "See all known drug interactions before switching medicines. Severity levels and brand names for every interaction." },
-            { icon: "📋", title: "Prescription Scanner", desc: "Upload a full prescription and Genora identifies every medicine on it, finding cheaper alternatives for each one." },
-            { icon: "⭐", title: "Patient Reviews", desc: "Excellent, Average and Poor review breakdowns from real patients to help you make the most informed choice." },
+            { title: "Smart Text Search", desc: "Search by brand name, salt composition, or manufacturer. Fuzzy matching finds the right medicine even with spelling variations." },
+            { title: "AI Image Recognition", desc: "Photograph any medicine strip, box, prescription or tablet. Our AI extracts the name and finds alternatives instantly." },
+            { title: "Price Comparison", desc: "All generic alternatives sorted cheapest first. Compare prices across every manufacturer for the exact same active ingredient." },
+            { title: "Drug Interactions", desc: "See all known drug interactions before switching medicines. Severity levels and brand names for every interaction." },
+            { title: "Prescription Scanner", desc: "Upload a full prescription and Genora identifies every medicine on it, finding cheaper alternatives for each one." },
+            { title: "Patient Reviews", desc: "Excellent, Average and Poor review breakdowns from real patients to help you make the most informed choice." },
           ].map((f, i) => (
             <div key={f.title} className={`feat-card reveal stagger-${i + 1}`}>
-              <div className="feat-icon">{f.icon}</div>
               <div className="feat-title">{f.title}</div>
               <div className="feat-desc">{f.desc}</div>
             </div>
@@ -323,7 +318,7 @@ export default function App() {
       {/* ── HOW IT WORKS ───────────────────── */}
       <section className="how-section" id="how">
         <div className="how-inner">
-          <div className="section-pill reveal" style={{ display: "inline-flex" }}>✦ Simple Process</div>
+          <div className="section-pill reveal" style={{ display: "inline-flex" }}>Simple Process</div>
           <h2 className="section-h2 reveal" style={{ margin: "0 auto 16px", textAlign: "center", maxWidth: "none" }}>
             How <em>Genora</em> works
           </h2>
@@ -332,14 +327,13 @@ export default function App() {
           </p>
           <div className="steps-row">
             {[
-              { n: "01", icon: "🔍", title: "Search or Scan", desc: "Type a medicine name or upload / scan a medicine image using our AI camera" },
-              { n: "02", icon: "🧬", title: "Salt Matching", desc: "Genora identifies the active salt composition and finds every generic with the same ingredients" },
-              { n: "03", icon: "📊", title: "Compare & Choose", desc: "Browse alternatives sorted by price, view interactions, side effects and reviews" },
-              { n: "04", icon: "💊", title: "Save Money", desc: "Pick the cheapest safe alternative and save up to 50% on your medicine bill" },
+              { n: "01", title: "Search or Scan", desc: "Type a medicine name or upload / scan a medicine image using our AI camera" },
+              { n: "02", title: "Salt Matching", desc: "Genora identifies the active salt composition and finds every generic with the same ingredients" },
+              { n: "03", title: "Compare & Choose", desc: "Browse alternatives sorted by price, view interactions, side effects and reviews" },
+              { n: "04", title: "Save Money", desc: "Pick the cheapest safe alternative and save up to 50% on your medicine bill" },
             ].map((s, i) => (
               <div key={s.n} className={`step-item reveal stagger-${i + 1}`}>
                 <div className="step-num">{s.n}</div>
-                <div className="step-icon-big">{s.icon}</div>
                 <div className="step-title">{s.title}</div>
                 <div className="step-desc">{s.desc}</div>
               </div>
@@ -350,7 +344,7 @@ export default function App() {
 
       {/* ── FOUNDERS ───────────────────────── */}
       <section className="founders-section" id="founders">
-        <div className="section-pill reveal">✦ The Builder</div>
+        <div className="section-pill reveal">The Builder</div>
         <h2 className="section-h2 reveal">Built by one<br/><em>passionate developer</em></h2>
         <p className="section-sub reveal" style={{marginBottom:'40px'}}>A 4th year CS student solving a real healthcare problem.</p>
 
@@ -367,7 +361,7 @@ export default function App() {
             ))}
           </div>
           <div className="college-note">
-            🎓 <strong>Nirmala College, Muvattupuzha</strong> — Affiliated to Mahatma Gandhi University, Kerala · Batch 2025
+            <strong>Nirmala College, Muvattupuzha</strong> — Affiliated to Mahatma Gandhi University, Kerala · Batch 2025
           </div>
         </div>
       </section>
@@ -376,7 +370,7 @@ export default function App() {
       <footer>
         <div className="foot-brand">
           <div className="foot-logo">
-            <div className="foot-logo-mark">⚕</div>
+            <div className="foot-logo-mark">G</div>
             Genora
           </div>
           <div className="foot-desc">India's smart medicine alternative finder. Helping patients save money without compromising on health since 2025.</div>

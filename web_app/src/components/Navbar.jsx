@@ -20,7 +20,7 @@ export default function Navbar() {
   return (
     <nav className={scrolled ? "scrolled" : ""}>
       <a href="#home" className="logo">
-        <div className="logo-mark">⚕</div>
+        <div className="logo-mark">G</div>
         <span className="logo-text">Genora</span>
       </a>
 

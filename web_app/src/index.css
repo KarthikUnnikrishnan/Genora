@@ -26,60 +26,198 @@
 
 /* DARK THEME — applied when <html> has class="dark" */
 html.dark {
-  --bg:        #0d1410;
-  --bg2:       #111916;
-  --white:     #141f16;
-  --green:     #4ade80;
-  --green2:    #22c55e;
-  --green3:    #86efac;
-  --green-lt:  rgba(34,197,94,0.10);
-  --green-lt2: rgba(34,197,94,0.20);
-  --sage:      #4a7c5e;
-  --stone:     #2d3d32;
-  --border:    rgba(34,197,94,0.09);
-  --border2:   rgba(34,197,94,0.18);
-  --text:      #dff0e4;
-  --text2:     #6fa882;
-  --text3:     #3a5c44;
-  --amber:     #fbbf24;
-  --amber-lt:  rgba(251,191,36,0.10);
-  --red:       #f87171;
-  --red-lt:    rgba(248,113,113,0.10);
-  --shadow:    0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.25);
-  --shadow2:   0 2px 8px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.3);
+  --bg:        #111714;
+  --bg2:       #161d19;
+  --white:     #1a2420;
+  --green:     #2e8b4a;
+  --green2:    #256e3b;
+  --green3:    #38a058;
+  --green-lt:  rgba(46,139,74,0.08);
+  --green-lt2: rgba(46,139,74,0.14);
+  --sage:      #2a5c3a;
+  --stone:     #2a3530;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.10);
+  --text:      #dceadf;
+  --text2:     #6e9478;
+  --text3:     #445c4a;
+  --amber:     #c49a14;
+  --amber-lt:  rgba(196,154,20,0.10);
+  --red:       #d45555;
+  --red-lt:    rgba(212,85,85,0.10);
+  --shadow:    0 1px 3px rgba(0,0,0,0.4), 
+               0 4px 16px rgba(0,0,0,0.3);
+  --shadow2:   0 2px 8px rgba(0,0,0,0.5), 
+               0 12px 32px rgba(0,0,0,0.4);
 }
 
-/* Dark mode body */
 html.dark body {
   background: var(--bg);
   color: var(--text);
 }
 
-/* Dark mode nav */
 html.dark nav {
-  background: rgba(13,20,16,0.92);
+  background: rgba(17,23,20,0.95);
   border-bottom-color: var(--border);
 }
 
-/* Dark mode hero */
-html.dark .hero {
-  background: var(--bg);
-}
-
-/* Dark mode footer */
-html.dark footer {
-  background: #0a100d;
-}
-html.dark .foot-bottom {
-  background: #0a100d;
-  border-top-color: var(--border);
-}
-
-/* Dark mode how-section */
 html.dark .how-section {
   background: var(--white);
   border-color: var(--border);
 }
+
+html.dark footer {
+  background: #0c1210;
+}
+
+html.dark .foot-bottom {
+  background: #0c1210;
+  border-top-color: var(--border);
+}
+
+/* Tone down decorative shapes in dark mode */
+html.dark .hero-deco {
+  opacity: 0.15;
+}
+
+html.dark .section-deco {
+  opacity: 0.12;
+}
+html.dark .deco-grid {
+  opacity: 0.08;
+}
+html.dark .deco-pill {
+  opacity: 0.15;
+}
+html.dark .blob-1,
+html.dark .blob-2,
+html.dark .blob-3 {
+  opacity: 0.25;
+}
+
+
+/* Make cards look right in dark mode */
+html.dark .orig-card,
+html.dark .alt-card,
+html.dark .feat-card,
+html.dark .detail-panel,
+html.dark .founder-card,
+html.dark .hero-stats {
+  background: var(--white);
+  border-color: var(--border);
+}
+
+html.dark .orig-card:hover,
+html.dark .alt-card:hover,
+html.dark .feat-card:hover {
+  border-color: var(--border2);
+}
+
+html.dark .detail-selected-header {
+  background: var(--green-lt);
+  border-bottom-color: var(--green-lt2);
+}
+
+/* Search field in dark mode */
+html.dark .search-field {
+  background: var(--white);
+  border-color: var(--border2);
+}
+
+html.dark .search-field input {
+  color: var(--text);
+}
+
+html.dark .search-field:focus-within {
+  border-color: var(--green2);
+  box-shadow: 0 0 0 3px rgba(52,168,90,0.12);
+}
+
+/* Suggestion pills in dark mode */
+html.dark .sugg {
+  background: var(--white);
+  border-color: var(--border);
+  color: var(--text2);
+}
+
+html.dark .sugg:hover {
+  background: var(--green-lt);
+  border-color: var(--green-lt2);
+  color: var(--green3);
+}
+
+/* Mode switcher in dark mode */
+html.dark .mode-switcher {
+  background: var(--white);
+  border-color: var(--border);
+}
+
+html.dark .modebt.active {
+  background: var(--green2);
+  color: #fff;
+  box-shadow: none;
+}
+
+/* Nav badge in dark mode */
+html.dark .nav-badge {
+  background: var(--green-lt);
+  border-color: var(--green-lt2);
+  color: var(--green3);
+}
+
+/* Hero badge in dark mode */
+html.dark .hero-badge {
+  background: var(--white);
+  border-color: var(--border2);
+  color: var(--text2);
+}
+
+/* Section pills in dark mode */
+html.dark .section-pill {
+  background: var(--green-lt);
+  border-color: var(--green-lt2);
+  color: var(--green3);
+}
+
+/* Button in dark mode */
+html.dark .btn-login {
+  border-color: var(--border2);
+  color: var(--text2);
+}
+
+html.dark .btn-signup {
+  background: var(--green2);
+  box-shadow: none;
+}
+
+html.dark .btn-signup:hover {
+  background: var(--green);
+}
+
+html.dark .search-go {
+  background: var(--green2);
+  box-shadow: none;
+}
+html.dark .search-go:hover {
+  background: var(--green);
+}
+html.dark .step-num {
+  background: var(--green2);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+html.dark .founder-avatar {
+  background: var(--green2);
+  box-shadow: none;
+}
+html.dark .logo-mark {
+  background: var(--green2);
+  box-shadow: none;
+}
+html.dark .foot-logo-mark {
+  background: var(--green2);
+}
+
+
 
 /* Smooth theme transition */
 *, *::before, *::after {
