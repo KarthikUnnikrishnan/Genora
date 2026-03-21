@@ -141,3 +141,13 @@ export async function analyzeImage(formData) {
     alternatives: (data.alternatives || []).map(mapMed),
   }
 }
+
+export async function getAutoComplete(query) {
+  if (!USE_BACKEND || query.length < 2) return []
+  try {
+    const data = await get(`/autocomplete/${encodeURIComponent(query)}`)
+    return data.suggestions || []
+  } catch {
+    return []
+  }
+}

@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from "react"
 import Navbar from "./components/Navbar"
 import ImageSearch from "./components/search/ImageSearch"
 import DetailPanel from "./components/results/DetailPanel"
-import { searchMedicine } from "./api/genora"
+import { searchMedicine, getAutoComplete } from "./api/genora"
 import { ORIGINAL, ALTERNATIVES, STATS, SUGGESTIONS, PRESC_MEDICINES } from "./data/medicines"
+import AutoComplete from './components/search/AutoComplete'
 
 // ── Count-up hook ─────────────────────────
 function useCountUp(target, trigger) {
@@ -55,8 +56,44 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState(null)   // { medicine, alternatives }
   const [selectedAlt, setSelectedAlt] = useState(null)
+  const [suggestions, setSuggestions] = useState([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const autocompleteTimer = useRef(null)
 
   useReveal()
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (!e.target.closest('.search-field') && 
+          !e.target.closest('[data-autocomplete]')) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  async function handleQueryChange(value) {
+    setQuery(value)
+    clearTimeout(autocompleteTimer.current)
+    if (value.length < 2) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+    autocompleteTimer.current = setTimeout(async () => {
+      const results = await getAutoComplete(value)
+      setSuggestions(results)
+      setShowSuggestions(results.length > 0)
+    }, 250)
+  }
+
+  function handleSuggestionSelect(name) {
+    setQuery(name)
+    setShowSuggestions(false)
+    setSuggestions([])
+    setTimeout(() => handleSearch(), 100)
+  }
 
   async function handleSearch() {
     if (!query.trim()) return
@@ -95,13 +132,87 @@ export default function App() {
 
       {/* ── HERO ───────────────────────────── */}
       <section className="hero" id="home">
-        <div className="blob blob-1" />
-        <div className="blob blob-2" />
-        <div className="blob blob-3" />
+
+        {/* Corner illustrations */}
+        <svg className="hero-deco hero-deco-tl" viewBox="0 0 200 200">
+          <rect x="30" y="80" width="100" height="40" rx="20"
+            fill="none" stroke="var(--green-lt2)" strokeWidth="2"/>
+          <rect x="30" y="80" width="50" height="40"
+            rx="20" fill="var(--green-lt)" opacity="0.6"/>
+          <ellipse cx="160" cy="50" rx="18" ry="10"
+            fill="none" stroke="var(--green-lt2)" strokeWidth="1.5"
+            transform="rotate(-30 160 50)"/>
+          <line x1="155" y1="140" x2="155" y2="175"
+            stroke="var(--green-lt2)" strokeWidth="2.5"
+            strokeLinecap="round"/>
+          <line x1="138" y1="157" x2="173" y2="157"
+            stroke="var(--green-lt2)" strokeWidth="2.5"
+            strokeLinecap="round"/>
+          <circle cx="100" cy="35" r="4" fill="var(--green-lt2)"/>
+          <circle cx="170" cy="110" r="3" fill="var(--stone)"/>
+        </svg>
+
+        <svg className="hero-deco hero-deco-tr" viewBox="0 0 200 200">
+          <rect x="60" y="20" width="80" height="120" rx="10"
+            fill="none" stroke="var(--green-lt2)" strokeWidth="1.5"/>
+          <circle cx="85" cy="50" r="11" fill="var(--green-lt)" opacity="0.7"/>
+          <circle cx="115" cy="50" r="11" fill="var(--green-lt)" opacity="0.7"/>
+          <circle cx="85" cy="80" r="11" fill="var(--green-lt)" opacity="0.5"/>
+          <circle cx="115" cy="80" r="11" fill="var(--green-lt)" opacity="0.5"/>
+          <circle cx="85" cy="110" r="11" fill="var(--border)" opacity="0.8"/>
+          <circle cx="115" cy="110" r="11" fill="var(--border)" opacity="0.8"/>
+          <line x1="100" y1="30" x2="100" y2="130"
+            stroke="var(--border)" strokeWidth="1" strokeDasharray="4 4"/>
+          <circle cx="25" cy="80" r="8"
+            fill="none" stroke="var(--green-lt2)" strokeWidth="1.5"/>
+        </svg>
+
+        <svg className="hero-deco hero-deco-bl" viewBox="0 0 200 200">
+          <circle cx="60" cy="100" r="14"
+            fill="var(--green-lt)" stroke="var(--green-lt2)" strokeWidth="1.5"/>
+          <circle cx="120" cy="70" r="10"
+            fill="var(--green-lt)" stroke="var(--green-lt2)" strokeWidth="1.5"/>
+          <circle cx="150" cy="130" r="12"
+            fill="var(--green-lt)" stroke="var(--green-lt2)" strokeWidth="1.5"/>
+          <circle cx="80" cy="155" r="8"
+            fill="var(--border)" stroke="var(--border2)" strokeWidth="1.5"/>
+          <line x1="74" y1="93" x2="113" y2="76"
+            stroke="var(--green-lt2)" strokeWidth="1.5"/>
+          <line x1="130" y1="80" x2="142" y2="120"
+            stroke="var(--green-lt2)" strokeWidth="1.5"/>
+          <line x1="65" y1="113" x2="76" y2="148"
+            stroke="var(--border2)" strokeWidth="1.5"/>
+          <rect x="15" y="25" width="50" height="22" rx="11"
+            fill="none" stroke="var(--green-lt2)" strokeWidth="1.5"/>
+          <rect x="15" y="25" width="25" height="22"
+            rx="11" fill="var(--green-lt)" opacity="0.5"/>
+        </svg>
+
+        <svg className="hero-deco hero-deco-br" viewBox="0 0 200 200">
+          <polyline
+            points="10,110 35,110 50,70 65,150 80,90 95,110 125,110 140,75 155,140 170,110 200,110"
+            fill="none" stroke="var(--green-lt2)" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="80" cy="90" r="5" fill="var(--green-lt2)"/>
+          <line x1="155" y1="25" x2="155" y2="55"
+            stroke="var(--green-lt2)" strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="140" y1="40" x2="170" y2="40"
+            stroke="var(--green-lt2)" strokeWidth="2.5" strokeLinecap="round"/>
+          <circle cx="155" cy="40" r="20"
+            fill="none" stroke="var(--border)" strokeWidth="1.5"/>
+          <rect x="45" y="160" width="40" height="16" rx="8"
+            fill="none" stroke="var(--green-lt2)" strokeWidth="1.5"/>
+        </svg>
 
         {/* LEFT — headline */}
         <div className="hero-left">
           <div className="hero-badge">
+            <div style={{
+              width:'6px', height:'6px', borderRadius:'50%',
+              background:'var(--green)',
+              animation:'pulse 2s ease infinite',
+              flexShrink: 0
+            }} />
             India's Generic Medicine Finder · 7,466 Medicines
           </div>
 
@@ -112,8 +223,8 @@ export default function App() {
           </h1>
 
           <p className="hero-sub">
-            Search by name, scan a strip, or upload a 
-            prescription. Genora finds every generic 
+            Search by name, scan a strip, or upload a
+            prescription. Genora finds every generic
             alternative — ranked by price — in seconds.
           </p>
         </div>
@@ -136,27 +247,50 @@ export default function App() {
           <div className="input-panel">
             {mode === 'text' ? (
               <div className="text-panel">
-                <div className="search-field">
-                  <input
-                    type="text"
-                    placeholder="Medicine name or salt composition…"
-                    value={query}
-                    onChange={e=>setQuery(e.target.value)}
-                    onKeyDown={e=>e.key==='Enter'&&handleSearch()}
+                <div style={{ position: 'relative' }}>
+                  <div className="search-field">
+                    <input
+                      type="text"
+                      placeholder="Medicine name or salt composition..."
+                      value={query}
+                      onChange={e => handleQueryChange(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          setShowSuggestions(false)
+                          handleSearch()
+                        }
+                        if (e.key === 'Escape') setShowSuggestions(false)
+                      }}
+                      onFocus={() => suggestions.length > 0 &&
+                        setShowSuggestions(true)}
+                      autoComplete="off"
+                    />
+                    <button
+                      className="search-go"
+                      onClick={() => {
+                        setShowSuggestions(false)
+                        handleSearch()
+                      }}
+                      disabled={loading}>
+                      {loading ? 'Searching...' : 'Search'}
+                    </button>
+                  </div>
+                  <AutoComplete
+                    suggestions={suggestions}
+                    onSelect={handleSuggestionSelect}
+                    visible={showSuggestions}
                   />
-                  <button
-                    className="search-go"
-                    onClick={handleSearch}
-                    disabled={loading}>
-                    {loading ? 'Searching…' : 'Search →'}
-                  </button>
                 </div>
                 <div className="suggestions">
                   {['Paracetamol 500mg','Azithromycin 500',
                     'Metformin 500','Pantoprazole 40mg',
-                    'Amoxicillin 250'].map(s=>(
+                    'Amoxicillin 250'].map(s => (
                     <span key={s} className="sugg"
-                      onClick={()=>setQuery(s)}>{s}</span>
+                      onClick={() => {
+                        setQuery(s)
+                        setShowSuggestions(false)
+                        setTimeout(() => handleSearch(), 100)
+                      }}>{s}</span>
                   ))}
                 </div>
               </div>
@@ -167,11 +301,11 @@ export default function App() {
 
           <div className="hero-stats">
             {[
-              {num:7466,  label:'Medicines Indexed'},
-              {num:12675, label:'Ingredient Records'},
+              {num:7466,  label:'Medicines'},
+              {num:12675, label:'Ingredients'},
               {num:49,    label:'Dosage Forms'},
-              {num:3,     label:'AI Scan Modes'}
-            ].map(s=>(
+              {num:3,     label:'Scan Modes'}
+            ].map(s => (
               <div key={s.label} className="hstat">
                 <div className="hstat-num">
                   <StatNum target={s.num} />
@@ -181,6 +315,7 @@ export default function App() {
             ))}
           </div>
         </div>
+
       </section>
 
       {/* ── RESULTS ────────────────────────── */}

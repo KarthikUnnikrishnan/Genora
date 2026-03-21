@@ -77,6 +77,38 @@ def health():
     return {"status": "ok", "service": "Genora API"}
 
 
+@app.get("/autocomplete/{query}")
+def autocomplete(query: str):
+    """Return up to 8 medicine name suggestions as user types."""
+    if len(query) < 2:
+        return {"suggestions": []}
+    with engine.connect() as conn:
+        q = text("""
+            SELECT DISTINCT product_name, salt_composition, price
+            FROM medicines
+            WHERE LOWER(product_name) LIKE LOWER(:q)
+            ORDER BY 
+                CASE WHEN LOWER(product_name) LIKE LOWER(:starts) 
+                THEN 0 ELSE 1 END,
+                LENGTH(product_name) ASC
+            LIMIT 8
+        """)
+        rows = conn.execute(q, {
+            "q": f"%{query}%",
+            "starts": f"{query}%"
+        }).fetchall()
+        return {
+            "suggestions": [
+                {
+                    "name": r[0],
+                    "salt": r[1],
+                    "price": f"₹{float(r[2]):.2f}" if r[2] else "N/A"
+                }
+                for r in rows
+            ]
+        }
+
+
 @app.get("/search/{name}")
 def search(name: str):
     with engine.connect() as conn:
