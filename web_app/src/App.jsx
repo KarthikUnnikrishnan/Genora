@@ -99,54 +99,91 @@ export default function App() {
         <div className="blob blob-2" />
         <div className="blob blob-3" />
 
-        <div className="hero-badge">
-          <div className="bdot" style={{width:'6px',height:'6px',borderRadius:'50%',background:'var(--green)',animation:'pulse 2s ease infinite'}} />
-          India's Generic Medicine Finder · 7,466 Medicines
+        {/* LEFT — headline */}
+        <div className="hero-left">
+          <div className="hero-badge">
+            <div className="bdot" style={{
+              width:'6px', height:'6px', borderRadius:'50%',
+              background:'var(--green)', animation:'pulse 2s ease infinite'
+            }} />
+            India's Generic Medicine Finder · 7,466 Medicines
+          </div>
+
+          <h1 className="hero-h1">
+            Find the <em>cheaper</em><br/>
+            <em>alternative</em><br/>
+            instantly
+          </h1>
+
+          <p className="hero-sub">
+            Search by name, scan a strip, or upload a 
+            prescription. Genora finds every generic 
+            alternative — ranked by price — in seconds.
+          </p>
         </div>
 
-        <h1 className="hero-h1">
-          Find the <em>cheaper</em><br/>
-          <em>alternative</em> instantly
-        </h1>
+        {/* RIGHT — search */}
+        <div className="hero-right">
+          <div className="mode-switcher">
+            <button
+              className={`modebt${mode==='text'?' active':''}`}
+              onClick={()=>setMode('text')}>
+              🔍 &nbsp;Text Search
+            </button>
+            <button
+              className={`modebt${mode==='image'?' active':''}`}
+              onClick={()=>setMode('image')}>
+              📷 &nbsp;Image Scan
+            </button>
+          </div>
 
-        <p className="hero-sub">
-          Search by name, scan a strip, or upload a prescription. Genora finds every generic alternative — ranked by price — in seconds.
-        </p>
-
-        <div className="mode-switcher">
-          <button className={`modebt${mode==='text'?' active':''}`} onClick={()=>setMode('text')}>🔍 &nbsp;Text Search</button>
-          <button className={`modebt${mode==='image'?' active':''}`} onClick={()=>setMode('image')}>📷 &nbsp;Image Scan</button>
-        </div>
-
-        <div className="input-panel">
-          {mode === 'text' ? (
-            <div className="text-panel">
-              <div className="search-field">
-                <input type="text" placeholder="Medicine name or salt composition…"
-                  value={query} onChange={e=>setQuery(e.target.value)}
-                  onKeyDown={e=>e.key==='Enter'&&handleSearch()} />
-                <button className="search-go" onClick={handleSearch} disabled={loading}>
-                  {loading ? 'Searching…' : 'Search →'}
-                </button>
+          <div className="input-panel">
+            {mode === 'text' ? (
+              <div className="text-panel">
+                <div className="search-field">
+                  <input
+                    type="text"
+                    placeholder="Medicine name or salt composition…"
+                    value={query}
+                    onChange={e=>setQuery(e.target.value)}
+                    onKeyDown={e=>e.key==='Enter'&&handleSearch()}
+                  />
+                  <button
+                    className="search-go"
+                    onClick={handleSearch}
+                    disabled={loading}>
+                    {loading ? 'Searching…' : 'Search →'}
+                  </button>
+                </div>
+                <div className="suggestions">
+                  {['Paracetamol 500mg','Azithromycin 500',
+                    'Metformin 500','Pantoprazole 40mg',
+                    'Amoxicillin 250'].map(s=>(
+                    <span key={s} className="sugg"
+                      onClick={()=>setQuery(s)}>{s}</span>
+                  ))}
+                </div>
               </div>
-              <div className="suggestions">
-                {['Paracetamol 500mg','Azithromycin 500','Metformin 500','Pantoprazole 40mg','Amoxicillin 250'].map(s=>(
-                  <span key={s} className="sugg" onClick={()=>setQuery(s)}>{s}</span>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <ImageSearch onResults={handleImageResults} />
-          )}
-        </div>
+            ) : (
+              <ImageSearch onResults={handleImageResults} />
+            )}
+          </div>
 
-        <div className="hero-stats">
-          {[{num:7466,label:'Medicines Indexed'},{num:12675,label:'Ingredient Records'},{num:49,label:'Dosage Forms'},{num:3,label:'AI Scan Modes'}].map(s=>(
-            <div key={s.label} className="hstat">
-              <div className="hstat-num"><StatNum target={s.num} /></div>
-              <div className="hstat-label">{s.label}</div>
-            </div>
-          ))}
+          <div className="hero-stats">
+            {[
+              {num:7466,  label:'Medicines Indexed'},
+              {num:12675, label:'Ingredient Records'},
+              {num:49,    label:'Dosage Forms'},
+              {num:3,     label:'AI Scan Modes'}
+            ].map(s=>(
+              <div key={s.label} className="hstat">
+                <div className="hstat-num">
+                  <StatNum target={s.num} />
+                </div>
+                <div className="hstat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -204,11 +241,33 @@ export default function App() {
                         <div className="alt-price">₹{Number(alt.price || 0).toFixed(2)}</div>
                         <div className="alt-form">{alt.form}</div>
                       </div>
-                      {results.medicine.price && alt.price && (
-                        <span className="alt-save pos" style={{ background: "rgba(52,211,153,0.08)", color: "var(--green)", border: "1px solid rgba(52,211,153,0.2)" }}>
-                          SAVE ₹{(results.medicine.price - alt.price).toFixed(2)}
-                        </span>
-                      )}
+                      {results.medicine.price && alt.price && (() => {
+                        const saving = results.medicine.price - alt.price
+                        if (saving > 0) {
+                          return (
+                            <span className="alt-save" style={{
+                              fontSize: '.64rem', fontWeight: 600, letterSpacing: '.3px',
+                              textTransform: 'uppercase', padding: '3px 9px', borderRadius: '6px',
+                              background: 'var(--green-lt)', color: 'var(--green)',
+                              border: '1px solid var(--green-lt2)'
+                            }}>
+                              SAVE ₹{saving.toFixed(2)}
+                            </span>
+                          )
+                        } else if (saving < 0) {
+                          return (
+                            <span className="alt-save" style={{
+                              fontSize: '.64rem', fontWeight: 600, letterSpacing: '.3px',
+                              textTransform: 'uppercase', padding: '3px 9px', borderRadius: '6px',
+                              background: 'var(--amber-lt)', color: 'var(--amber)',
+                              border: '1px solid #FDE68A'
+                            }}>
+                              ₹{Math.abs(saving).toFixed(2)} more
+                            </span>
+                          )
+                        }
+                        return null
+                      })()}
                     </div>
                   </div>
                 ))}

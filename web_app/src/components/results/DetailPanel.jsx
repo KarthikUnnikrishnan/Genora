@@ -9,7 +9,7 @@ export default function DetailPanel({ medicine, isSaved }) {
 
   const { name, desc, sideEffects, interactions, reviews, priceLabel, manufacturer, form, pack, salt } = medicine
 
-  const meta = [manufacturer, form, pack, salt].filter(Boolean).join(" · ")
+  const meta = [manufacturer, form, salt].filter(Boolean).join(" · ")
 
   return (
     <div className="detail-panel">
@@ -76,7 +76,7 @@ export default function DetailPanel({ medicine, isSaved }) {
           <div className="dcol-title">Quick Info</div>
           <div className="desc-text">
             <strong>Manufacturer:</strong> {manufacturer}<br /><br />
-            <strong>Form:</strong> {form} — {pack}<br /><br />
+            <strong>Form:</strong> {form}<br /><br />
             <strong>Salt:</strong> {salt}<br /><br />
             <strong>Price:</strong> {priceLabel}
           </div>

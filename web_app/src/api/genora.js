@@ -11,18 +11,31 @@ async function get(path) {
   return res.json()
 }
 
+function cleanText(str) {
+  if (!str || typeof str !== 'string') return str
+  return str
+    .replace(/Â/g, '')
+    .replace(/â€™/g, "'")
+    .replace(/â€œ/g, '"')
+    .replace(/â€/g, '"')
+    .replace(/Ã©/g, 'é')
+    .replace(/\u00A0/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 // ── Maps backend field names → frontend field names ──────────────────────────
 function mapMed(m) {
   if (!m) return null
   return {
     ...m,
     // Core display fields
-    name: m.product_name,
-    salt: m.salt_composition,
+    name: cleanText(m.product_name),
+    salt: cleanText(m.salt_composition),
     form: m.dosage_form || "Tablet",
-    pack: m.dosage_form || "Strip",
-    desc: m.description || m.uses || "No description available.",
-    sideEffects: m.side_effects || "No side effect data available.",
+    pack: m.sub_category || m.dosage_form || "Strip",
+    desc: cleanText(m.description || m.uses || "No description available."),
+    sideEffects: cleanText(m.side_effects || "No side effect data available."),
     // Price
     price: m.price ? Number(m.price) : null,
     priceLabel: m.price ? `₹${Number(m.price).toFixed(2)}` : "N/A",
