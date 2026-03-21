@@ -30,6 +30,10 @@ export default function ImageSearch({ onResults }) {
   const fileRef = useRef()
 
   function startAI() {
+    // Capture the file immediately, because setting phase to 'processing'
+    // will unmount the <input> and clear fileRef.current!
+    const file = fileRef.current?.files[0]
+
     setPhase("processing")
     setStepsDone([])
     setActiveStep(0)
@@ -44,16 +48,27 @@ export default function ImageSearch({ onResults }) {
         clearInterval(iv)
         setTimeout(async () => {
           const fd = new FormData()
-          if (fileRef.current?.files[0]) fd.append("image", fileRef.current.files[0])
+          if (file) {
+            fd.append("image", file)
+          } else {
+            console.warn("No file found! Perhaps it was camera mode.")
+            // You can handle camera mode here. For now we just return.
+            alert("No file found to scan. Please try uploading again.")
+            setPhase("idle")
+            return
+          }
           fd.append("type", type)
+          
           try {
             const res = await analyzeImage(fd)
             setExtracted(res.extracted)
             setConfidence(res.confidence)
             setPhase("confirm")
             window._imageResults = res
-          } catch {
+          } catch(err) {
+            console.error("Image scan error:", err)
             setPhase("idle")
+            alert("Image scan failed: " + err.message)
           }
         }, 400)
       }
@@ -123,18 +138,20 @@ export default function ImageSearch({ onResults }) {
       {/* Confirm */}
       {phase === "confirm" && (
         <div className="extract-box on">
-          <div className="ext-label">Extracted Text — Confirm Before Searching</div>
-          <div className="ext-text">{extracted}</div>
+          <div className="ext-label">Medicine Detected — Confirm to View Alternatives</div>
+          <div className="ext-text" style={{ fontSize: "1.25rem", fontWeight: "600", textAlign: "center", color: "var(--brand)", padding: "24px 16px" }}>
+            {window._imageResults?.medicine?.name || "Unknown Medicine"}
+          </div>
           <div className="ext-conf">
-            <span className="ext-conf-lbl">Confidence</span>
+            <span className="ext-conf-lbl">AI Confidence</span>
             <div className="ext-track">
               <div className="ext-fill" style={{ width: `${confidence}%` }} />
             </div>
             <span className="ext-pct">{confidence}%</span>
           </div>
           <div className="ext-btns">
-            <button className="ext-btn yes" onClick={confirm}>✓ Confirm &amp; Search</button>
-            <button className="ext-btn no" onClick={reset}>↺ Try Again</button>
+            <button className="ext-btn yes" onClick={confirm}>✓ View Alternatives</button>
+            <button className="ext-btn no" onClick={reset}>↺ Scan Another</button>
           </div>
         </div>
       )}

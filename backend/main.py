@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 from pydantic import BaseModel
@@ -79,26 +79,28 @@ def health():
 
 @app.get("/search/{name}")
 def search(name: str):
-    """Search by product name or salt composition. Returns best match + alternatives."""
     with engine.connect() as conn:
-        # Exact name match first
         q = text("""
             SELECT * FROM medicines
             WHERE LOWER(product_name) LIKE LOWER(:q)
                OR LOWER(salt_composition) LIKE LOWER(:q)
             ORDER BY
                 CASE WHEN LOWER(product_name) = LOWER(:exact) THEN 0 ELSE 1 END,
+                CASE WHEN LOWER(salt_composition) LIKE LOWER(:salt_exact) THEN 0 ELSE 1 END,
+                LENGTH(salt_composition) ASC,
                 price ASC NULLS LAST
             LIMIT 1
         """)
-        row = conn.execute(q, {"q": f"%{name}%", "exact": name}).fetchone()
+        row = conn.execute(q, {
+            "q": f"%{name}%",
+            "exact": name,
+            "salt_exact": f"%{name}%"
+        }).fetchone()
 
         if not row:
             raise HTTPException(status_code=404, detail="Medicine not found")
 
         medicine = row_to_dict(row)
-
-        # Get alternatives by same salt
         salt = medicine.get("salt_composition")
         alts = []
         if salt:
@@ -109,13 +111,17 @@ def search(name: str):
                 ORDER BY price ASC NULLS LAST
                 LIMIT 10
             """)
-            alt_rows = conn.execute(alt_q, {"salt": salt, "mid": medicine["id"]}).fetchall()
+            alt_rows = conn.execute(alt_q, {
+                "salt": salt,
+                "mid": medicine["id"]
+            }).fetchall()
             alts = [row_to_dict(r) for r in alt_rows]
 
-        # Parse interactions
-        medicine["interactions_parsed"] = parse_interactions(medicine.get("drug_interactions"))
+        medicine["interactions_parsed"] = parse_interactions(
+            medicine.get("drug_interactions"))
         for a in alts:
-            a["interactions_parsed"] = parse_interactions(a.get("drug_interactions"))
+            a["interactions_parsed"] = parse_interactions(
+                a.get("drug_interactions"))
 
         return {
             "medicine": medicine,
@@ -189,7 +195,7 @@ def get_by_category(name: str):
 
 
 @app.post("/image/analyze")
-async def analyze_image(image: UploadFile = File(...), type: str = "strip"):
+async def analyze_image(image: UploadFile = File(...), type: str = Form("strip")):
     """
     AI image analysis endpoint.
     Receives an image, runs EasyOCR / Moondream2, returns matched medicine.
@@ -199,32 +205,53 @@ async def analyze_image(image: UploadFile = File(...), type: str = "strip"):
         import easyocr
         from PIL import Image
         import io
+        import numpy as np
 
         contents = await image.read()
         img = Image.open(io.BytesIO(contents)).convert("RGB")
 
         reader = easyocr.Reader(["en"], gpu=False)
-        results = reader.readtext(img, detail=0, paragraph=True)
+        results = reader.readtext(np.array(img), detail=0, paragraph=True)
         raw_text = "\n".join(results)
 
-        # Extract medicine-like tokens (capitalized words)
-        tokens = re.findall(r"[A-Z][a-z]+(?:\s+\d+(?:mg|ml|mcg|g)?)?", raw_text)
-        query = " ".join(tokens[:4]) if tokens else raw_text[:80]
+        # Find words > 3 chars to use as search queries
+        words = re.findall(r"[A-Za-z0-9\-]{4,}", raw_text)
+        words = sorted(set(words), key=len, reverse=True)
+        skip_words = {"COMPOSITION", "TABLET", "TABLETS", "CAPSULES", "SYRUP", 
+                      "HYDROCHLORIDE", "CONTAINS", "PHYSICIAN", "DIRECTED", 
+                      "TEMPERATURE", "SCHEDULE", "PRESCRIPTION", "COLOURS", 
+                      "TITANIUM", "DIOXIDE", "QUINOLINE", "YELLOW", "DOSAGE", 
+                      "STORE", "PROTECTED", "MOISTURE", "EXCEEDING", "CHILDREN"}
+
+        medicine = None
+        used_query = ""
 
         # Search DB
         with engine.connect() as conn:
-            q = text("""
-                SELECT * FROM medicines
-                WHERE LOWER(product_name) LIKE LOWER(:q)
-                ORDER BY price ASC NULLS LAST
-                LIMIT 1
-            """)
-            row = conn.execute(q, {"q": f"%{query.split()[0]}%"}).fetchone()
+            for w in words:
+                if w.upper() in skip_words:
+                    continue
 
-            if not row:
-                raise HTTPException(status_code=404, detail="No medicine matched from image")
+                q = text("""
+                    SELECT * FROM medicines
+                    WHERE LOWER(product_name) LIKE LOWER(:q)
+                       OR LOWER(salt_composition) LIKE LOWER(:q)
+                    ORDER BY 
+                        CASE WHEN LOWER(product_name) = LOWER(:exact) THEN 0 ELSE 1 END,
+                        LENGTH(salt_composition) ASC,
+                        price ASC NULLS LAST
+                    LIMIT 1
+                """)
+                row = conn.execute(q, {"q": f"%{w}%", "exact": w}).fetchone()
 
-            medicine = row_to_dict(row)
+                if row:
+                    medicine = row_to_dict(row)
+                    used_query = w
+                    break
+
+            if not medicine:
+                raise HTTPException(status_code=404, detail="No medicine matched from image text")
+
             salt = medicine.get("salt_composition")
 
             alts = []
@@ -238,7 +265,7 @@ async def analyze_image(image: UploadFile = File(...), type: str = "strip"):
 
         return {
             "extracted": raw_text[:500],
-            "query_used": query,
+            "query_used": used_query,
             "confidence": 88,
             "medicine": medicine,
             "alternatives": alts,
