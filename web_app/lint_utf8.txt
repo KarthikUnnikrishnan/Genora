@@ -1,0 +1,6 @@
+
+D:\Coding Section\Genora\web_app\src\App.jsx
+  1:39  error  'useMemo' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+✖ 1 problem (1 error, 0 warnings)
+

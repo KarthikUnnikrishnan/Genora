@@ -1,0 +1,35 @@
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  animation: fadeUp 0.8s ease forwards;
+}
+
+.mainCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  min-width: 0;
+}
+
+.sideCol {
+  width: 440px;
+  position: sticky;
+  top: 100px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    flex-direction: column;
+  }
+  .sideCol {
+    width: 100%;
+    position: static;
+  }
+}
