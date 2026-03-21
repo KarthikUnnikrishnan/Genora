@@ -24,6 +24,69 @@
   --shadow2:   0 2px 8px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.07);
 }
 
+/* DARK THEME — applied when <html> has class="dark" */
+html.dark {
+  --bg:        #0d1410;
+  --bg2:       #111916;
+  --white:     #141f16;
+  --green:     #4ade80;
+  --green2:    #22c55e;
+  --green3:    #86efac;
+  --green-lt:  rgba(34,197,94,0.10);
+  --green-lt2: rgba(34,197,94,0.20);
+  --sage:      #4a7c5e;
+  --stone:     #2d3d32;
+  --border:    rgba(34,197,94,0.09);
+  --border2:   rgba(34,197,94,0.18);
+  --text:      #dff0e4;
+  --text2:     #6fa882;
+  --text3:     #3a5c44;
+  --amber:     #fbbf24;
+  --amber-lt:  rgba(251,191,36,0.10);
+  --red:       #f87171;
+  --red-lt:    rgba(248,113,113,0.10);
+  --shadow:    0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.25);
+  --shadow2:   0 2px 8px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.3);
+}
+
+/* Dark mode body */
+html.dark body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Dark mode nav */
+html.dark nav {
+  background: rgba(13,20,16,0.92);
+  border-bottom-color: var(--border);
+}
+
+/* Dark mode hero */
+html.dark .hero {
+  background: var(--bg);
+}
+
+/* Dark mode footer */
+html.dark footer {
+  background: #0a100d;
+}
+html.dark .foot-bottom {
+  background: #0a100d;
+  border-top-color: var(--border);
+}
+
+/* Dark mode how-section */
+html.dark .how-section {
+  background: var(--white);
+  border-color: var(--border);
+}
+
+/* Smooth theme transition */
+*, *::before, *::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, 
+              color 0.2s ease, box-shadow 0.3s ease !important;
+}
+
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior:smooth; }
 body {

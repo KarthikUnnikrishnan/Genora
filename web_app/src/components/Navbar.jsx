@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import ThemeToggle from "./ThemeToggle"
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -38,6 +39,7 @@ export default function Navbar() {
           <div className="dot" />
           AI Active
         </div>
+        <ThemeToggle />
         <button className="btn-login">Log In</button>
         <button className="btn-signup">Sign Up →</button>
       </div>
