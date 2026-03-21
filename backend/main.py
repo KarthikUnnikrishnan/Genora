@@ -5,6 +5,9 @@ from pydantic import BaseModel
 from typing import Optional, List
 import os, json, re
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # ── App setup ────────────────────────────────────────────────────────────────
 app = FastAPI(title="Genora API", version="1.0.0")
 
