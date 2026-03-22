@@ -21,7 +21,7 @@ app.add_middleware(
 # ── Database ─────────────────────────────────────────────────────────────────
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:password@localhost:5432/genora"  # ← update this
+    "postgresql://postgres:password@localhost:5432/genora"
 )
 engine = create_engine(DATABASE_URL)
 
@@ -70,6 +70,41 @@ def parse_interactions(raw):
         return []
 
 
+# Words to skip when searching OCR output
+SKIP_WORDS = {
+    "COMPOSITION", "TABLET", "TABLETS", "CAPSULES", "SYRUP",
+    "HYDROCHLORIDE", "CONTAINS", "PHYSICIAN", "DIRECTED",
+    "TEMPERATURE", "SCHEDULE", "PRESCRIPTION", "COLOURS",
+    "TITANIUM", "DIOXIDE", "QUINOLINE", "YELLOW", "DOSAGE",
+    "STORE", "PROTECTED", "MOISTURE", "EXCEEDING", "CHILDREN",
+    "EACH", "FILM", "COATED", "USES", "SIDE", "EFFECTS",
+    "WARNINGS", "STORAGE", "MANUFACTURED", "DISTRIBUTED",
+    "BATCH", "EXPIRY", "DATE", "KEEP", "REACH", "SHAKE",
+    "WELL", "BEFORE", "INJECT", "ONLY", "STERILE", "SINGLE",
+}
+
+
+def search_medicine_in_db(conn, words):
+    """Try each word against the DB and return first match."""
+    for w in words:
+        if w.upper() in SKIP_WORDS or len(w) < 4:
+            continue
+        q = text("""
+            SELECT * FROM medicines
+            WHERE LOWER(product_name) LIKE LOWER(:q)
+               OR LOWER(salt_composition) LIKE LOWER(:q)
+            ORDER BY
+                CASE WHEN LOWER(product_name) = LOWER(:exact) THEN 0 ELSE 1 END,
+                LENGTH(salt_composition) ASC,
+                price ASC NULLS LAST
+            LIMIT 1
+        """)
+        row = conn.execute(q, {"q": f"%{w}%", "exact": w}).fetchone()
+        if row:
+            return row_to_dict(row), w
+    return None, ""
+
+
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
 @app.get("/health")
@@ -88,8 +123,8 @@ def autocomplete(query: str):
             FROM medicines
             WHERE LOWER(product_name) LIKE LOWER(:q)
             GROUP BY product_name, salt_composition
-            ORDER BY 
-                CASE WHEN LOWER(product_name) LIKE LOWER(:starts) 
+            ORDER BY
+                CASE WHEN LOWER(product_name) LIKE LOWER(:starts)
                 THEN 0 ELSE 1 END,
                 LENGTH(product_name) ASC
             LIMIT 8
@@ -180,8 +215,10 @@ def get_medicine(id: int):
 def get_alternatives(id: int):
     """Get all alternatives for a medicine, sorted by price."""
     with engine.connect() as conn:
-        # Get the original medicine's salt
-        orig = conn.execute(text("SELECT salt_composition FROM medicines WHERE id = :id"), {"id": id}).fetchone()
+        orig = conn.execute(
+            text("SELECT salt_composition FROM medicines WHERE id = :id"),
+            {"id": id}
+        ).fetchone()
         if not orig:
             raise HTTPException(status_code=404, detail="Medicine not found")
 
@@ -230,63 +267,58 @@ def get_by_category(name: str):
 @app.post("/image/analyze")
 async def analyze_image(image: UploadFile = File(...), type: str = Form("strip")):
     """
-    AI image analysis endpoint.
-    Receives an image, runs EasyOCR / Moondream2, returns matched medicine.
-    Install: pip install easyocr pillow
+    Image scan using Tesseract OCR — lightweight, works on free tier.
     """
     try:
-        import easyocr
-        from PIL import Image
+        import pytesseract
+        from PIL import Image, ImageFilter, ImageEnhance
         import io
-        import numpy as np
 
         contents = await image.read()
         img = Image.open(io.BytesIO(contents)).convert("RGB")
 
-        reader = easyocr.Reader(["en"], gpu=False)
-        results = reader.readtext(np.array(img), detail=0, paragraph=True)
-        raw_text = "\n".join(results)
+        # ── Pre-process for better OCR accuracy ──────────────────────────────
+        # Resize if too small
+        w, h = img.size
+        if w < 1000:
+            scale = 1000 / w
+            img = img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
 
-        # Find words > 3 chars to use as search queries
-        words = re.findall(r"[A-Za-z0-9\-]{4,}", raw_text)
+        # Convert to grayscale
+        gray = img.convert("L")
+
+        # Increase contrast
+        enhancer = ImageEnhance.Contrast(gray)
+        gray = enhancer.enhance(2.0)
+
+        # Sharpen
+        gray = gray.filter(ImageFilter.SHARPEN)
+
+        # ── Run Tesseract ─────────────────────────────────────────────────────
+        # PSM 6 = assume uniform block of text (good for medicine strips)
+        custom_config = r"--oem 3 --psm 6"
+        raw_text = pytesseract.image_to_string(gray, config=custom_config)
+
+        if not raw_text.strip():
+            # Try PSM 11 (sparse text) as fallback
+            raw_text = pytesseract.image_to_string(gray, config=r"--oem 3 --psm 11")
+
+        # ── Extract candidate words ───────────────────────────────────────────
+        words = re.findall(r"[A-Za-z][A-Za-z0-9\-]{3,}", raw_text)
+        # Sort longest first — more specific = more likely to be medicine name
         words = sorted(set(words), key=len, reverse=True)
-        skip_words = {"COMPOSITION", "TABLET", "TABLETS", "CAPSULES", "SYRUP", 
-                      "HYDROCHLORIDE", "CONTAINS", "PHYSICIAN", "DIRECTED", 
-                      "TEMPERATURE", "SCHEDULE", "PRESCRIPTION", "COLOURS", 
-                      "TITANIUM", "DIOXIDE", "QUINOLINE", "YELLOW", "DOSAGE", 
-                      "STORE", "PROTECTED", "MOISTURE", "EXCEEDING", "CHILDREN"}
 
-        medicine = None
-        used_query = ""
-
-        # Search DB
+        # ── Search database ───────────────────────────────────────────────────
         with engine.connect() as conn:
-            for w in words:
-                if w.upper() in skip_words:
-                    continue
-
-                q = text("""
-                    SELECT * FROM medicines
-                    WHERE LOWER(product_name) LIKE LOWER(:q)
-                       OR LOWER(salt_composition) LIKE LOWER(:q)
-                    ORDER BY 
-                        CASE WHEN LOWER(product_name) = LOWER(:exact) THEN 0 ELSE 1 END,
-                        LENGTH(salt_composition) ASC,
-                        price ASC NULLS LAST
-                    LIMIT 1
-                """)
-                row = conn.execute(q, {"q": f"%{w}%", "exact": w}).fetchone()
-
-                if row:
-                    medicine = row_to_dict(row)
-                    used_query = w
-                    break
+            medicine, used_query = search_medicine_in_db(conn, words)
 
             if not medicine:
-                raise HTTPException(status_code=404, detail="No medicine matched from image text")
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"No medicine matched. OCR read: {raw_text[:200]}"
+                )
 
             salt = medicine.get("salt_composition")
-
             alts = []
             if salt:
                 alt_rows = conn.execute(text("""
@@ -296,19 +328,21 @@ async def analyze_image(image: UploadFile = File(...), type: str = Form("strip")
                 """), {"salt": salt, "mid": medicine["id"]}).fetchall()
                 alts = [row_to_dict(r) for r in alt_rows]
 
+            medicine["interactions_parsed"] = parse_interactions(
+                medicine.get("drug_interactions"))
+            for a in alts:
+                a["interactions_parsed"] = parse_interactions(
+                    a.get("drug_interactions"))
+
         return {
             "extracted": raw_text[:500],
             "query_used": used_query,
-            "confidence": 88,
+            "confidence": 85,
             "medicine": medicine,
             "alternatives": alts,
         }
 
-    except ImportError:
-        # EasyOCR not installed — return demo data
-        raise HTTPException(
-            status_code=501,
-            detail="EasyOCR not installed. Run: pip install easyocr pillow"
-        )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
