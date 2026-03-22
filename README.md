@@ -320,39 +320,6 @@ Base URL: `https://genora-e3sm.onrender.com`
 
 ---
 
-## 🌐 Deployment
-
-### Full Deployment Guide
-
-| Service | Purpose | Cost |
-|---|---|---|
-| [Supabase](https://supabase.com) | PostgreSQL database | Free |
-| [Render](https://render.com) | FastAPI backend | Free |
-| [Vercel](https://vercel.com) | React frontend | Free |
-
-### Quick Deploy Steps
-
-**1. Database (Supabase)**
-- Create project → Run `schema.sql` in SQL Editor
-- Import `master_medicines_clean.csv` via Table Editor
-- Copy connection string from Connect → Direct
-
-**2. Backend (Render)**
-- New Web Service → Connect GitHub repo
-- Root Directory: `backend`
-- Build Command: `pip install -r requirements.txt`
-- Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-- Add env var: `DATABASE_URL` = your Supabase URI
-
-**3. Frontend (Vercel)**
-- New Project → Import GitHub repo
-- Root Directory: `web_app`
-- Add env var: `VITE_API_URL` = your Render URL
-
-> ⚠️ **Note:** Render free tier sleeps after 15 minutes of inactivity. Use [cron-job.org](https://cron-job.org) to ping `/health` every 10 minutes.
-
----
-
 ## 👨‍💻 The Builders
 
 <table>
@@ -386,6 +353,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 *"Healthcare should be affordable for everyone. Genora is our answer."*
 
-**© 2026 Genora · Nirmala College, Muvattupuzha**
+**© 2026 Genora · Created By Karthik Unnikrishnan**
 
 </div>
