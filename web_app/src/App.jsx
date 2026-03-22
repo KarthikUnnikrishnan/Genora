@@ -545,11 +545,9 @@ export default function App() {
               padding: '32px',
               display: 'flex', flexDirection: 'column', gap: '20px',
               boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-              transition: 'transform .25s, box-shadow .25s',
-              cursor: 'default'
+              transition: 'transform .3s cubic-bezier(.25,.8,.25,1), box-shadow .3s cubic-bezier(.25,.8,.25,1)',
+              cursor: 'default', userSelect: 'none', willChange: 'transform'
             }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.12)' }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.06)' }}
             >
               {/* Top strip accent */}
               <div style={{ height: '3px', background: 'linear-gradient(90deg, var(--green), var(--green-lt2))', borderRadius: '2px', margin: '-32px -32px 0', borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }} />
@@ -609,11 +607,9 @@ export default function App() {
               padding: '32px',
               display: 'flex', flexDirection: 'column', gap: '20px',
               boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-              transition: 'transform .25s, box-shadow .25s',
-              cursor: 'default'
+              transition: 'transform .3s cubic-bezier(.25,.8,.25,1), box-shadow .3s cubic-bezier(.25,.8,.25,1)',
+              cursor: 'default', userSelect: 'none', willChange: 'transform'
             }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.12)' }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.06)' }}
             >
               {/* Top strip accent */}
               <div style={{ height: '3px', background: 'linear-gradient(90deg, #4CAF78, var(--green-lt2))', borderRadius: '2px', margin: '-32px -32px 0', borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }} />
@@ -705,20 +701,11 @@ export default function App() {
             <a href="#" className="foot-link">Image Scan</a>
           </div>
         </div>
-        <div>
-          <div className="foot-col-title">Technical</div>
-          <div className="foot-mono">
-            <strong>7,466</strong> medicines<br />
-            <strong>12,675</strong> ingredients<br />
-            FastAPI · PostgreSQL<br />
-            React · Vite · Tailwind<br />
-            EasyOCR · Moondream2
-          </div>
-        </div>
+
       </footer>
       <div className="foot-bottom">
         <div>© 2026 Genora · Built by Karthik &amp; Fidha · Nirmala College, Muvattuppuzha</div>
-        <div>Built for India's healthcare access · All Free Tier Deployment</div>
+
       </div>
     </>
   )
