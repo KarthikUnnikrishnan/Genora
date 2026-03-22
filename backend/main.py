@@ -13,7 +13,7 @@ app = FastAPI(title="Genora API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://*.vercel.app"],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -84,9 +84,10 @@ def autocomplete(query: str):
         return {"suggestions": []}
     with engine.connect() as conn:
         q = text("""
-            SELECT DISTINCT product_name, salt_composition, price
+            SELECT product_name, salt_composition, MIN(price)
             FROM medicines
             WHERE LOWER(product_name) LIKE LOWER(:q)
+            GROUP BY product_name, salt_composition
             ORDER BY 
                 CASE WHEN LOWER(product_name) LIKE LOWER(:starts) 
                 THEN 0 ELSE 1 END,
@@ -101,7 +102,7 @@ def autocomplete(query: str):
             "suggestions": [
                 {
                     "name": r[0],
-                    "salt": r[1],
+                    "salt": r[1] or "",
                     "price": f"₹{float(r[2]):.2f}" if r[2] else "N/A"
                 }
                 for r in rows
@@ -124,9 +125,9 @@ def search(name: str):
             LIMIT 1
         """)
         row = conn.execute(q, {
-            "q": f"%{name}%",
+            "q": f"%{name.strip().replace(' ', '%')}%",
             "exact": name,
-            "salt_exact": f"%{name}%"
+            "salt_exact": f"%{name.strip().replace(' ', '%')}%"
         }).fetchone()
 
         if not row:

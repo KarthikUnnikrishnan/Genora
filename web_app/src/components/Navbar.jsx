@@ -35,13 +35,7 @@ export default function Navbar() {
       </ul>
 
       <div className="nav-right">
-        <div className="nav-badge">
-          <div className="dot" />
-          AI Active
-        </div>
         <ThemeToggle />
-        <button className="btn-login">Log In</button>
-        <button className="btn-signup">Sign Up →</button>
       </div>
     </nav>
   )

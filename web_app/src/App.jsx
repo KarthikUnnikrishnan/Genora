@@ -63,14 +63,14 @@ export default function App() {
   useReveal()
 
   useEffect(() => {
-    function handleClickOutside(e) {
-      if (!e.target.closest('.search-field') && 
+    function handleClick(e) {
+      if (!e.target.closest('.search-field') &&
           !e.target.closest('[data-autocomplete]')) {
         setShowSuggestions(false)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
   async function handleQueryChange(value) {
@@ -82,9 +82,20 @@ export default function App() {
       return
     }
     autocompleteTimer.current = setTimeout(async () => {
-      const results = await getAutoComplete(value)
-      setSuggestions(results)
-      setShowSuggestions(results.length > 0)
+      try {
+        const results = await getAutoComplete(value)
+        if (results && results.length > 0) {
+          setSuggestions(results)
+          setShowSuggestions(true)
+        } else {
+          setSuggestions([])
+          setShowSuggestions(false)
+        }
+      } catch(err) {
+        console.error('Autocomplete error:', err)
+        setSuggestions([])
+        setShowSuggestions(false)
+      }
     }, 250)
   }
 
@@ -92,20 +103,26 @@ export default function App() {
     setQuery(name)
     setShowSuggestions(false)
     setSuggestions([])
-    setTimeout(() => handleSearch(), 100)
+    handleSearch(name)
   }
 
-  async function handleSearch() {
-    if (!query.trim()) return
+  async function handleSearch(searchQuery) {
+    const q = (searchQuery || query).trim()
+    if (!q) return
     setLoading(true)
     setResults(null)
     setSelectedAlt(null)
-    setLastQuery(query)
+    setLastQuery(q)
     try {
-      const data = await searchMedicine(query)
-      setResults(data)
-      setSelectedAlt(null)
-      setTimeout(() => document.getElementById("results")?.scrollIntoView({ behavior: "smooth" }), 100)
+      const data = await searchMedicine(q)
+      if (!data) {
+        alert("Medicine not found in our database.")
+        setResults(null)
+      } else {
+        setResults(data)
+        setSelectedAlt(null)
+        setTimeout(() => document.getElementById("results")?.scrollIntoView({ behavior: "smooth" }), 100)
+      }
     } catch (e) {
       console.error(e)
     } finally {
@@ -247,7 +264,7 @@ export default function App() {
           <div className="input-panel">
             {mode === 'text' ? (
               <div className="text-panel">
-                <div style={{ position: 'relative' }}>
+                <div style={{ position: 'relative', width: '100%', zIndex: 100 }}>
                   <div className="search-field">
                     <input
                       type="text"
@@ -289,7 +306,7 @@ export default function App() {
                       onClick={() => {
                         setQuery(s)
                         setShowSuggestions(false)
-                        setTimeout(() => handleSearch(), 100)
+                        handleSearch(s)
                       }}>{s}</span>
                   ))}
                 </div>
@@ -343,7 +360,9 @@ export default function App() {
             <div className="orig-meta">
               <div className="chip">{results.medicine.form}</div>
               <div className="chip">{results.medicine.manufacturer}</div>
-              <div className="chip ok">Available</div>
+              <div className={`chip ${results.medicine.available ? 'ok' : 'warn'}`}>
+                {results.medicine.available ? 'Available' : 'Discontinued'}
+              </div>
             </div>
           </div>
 
@@ -416,8 +435,10 @@ export default function App() {
           <div id="detail">
             <DetailPanel
               medicine={displayMed}
-              isSaved={selectedAlt 
-                ? `Save ₹${(results.medicine.price - selectedAlt.price).toFixed(2)} vs original`
+              isSaved={selectedAlt
+                ? (results.medicine.price && selectedAlt.price
+                    ? `Save ₹${Math.abs(results.medicine.price - selectedAlt.price).toFixed(2)} vs original`
+                    : '— Alternative Selected')
                 : '— Searched Medicine'}
             />
           </div>
@@ -517,10 +538,8 @@ export default function App() {
           </div>
         </div>
         <div>
-          <div className="foot-col-title">Account</div>
+          <div className="foot-col-title">Resources</div>
           <div className="foot-links">
-            <a href="#" className="foot-link">Log In</a>
-            <a href="#" className="foot-link">Sign Up</a>
             <a href="#" className="foot-link">Drug Interactions</a>
             <a href="#" className="foot-link">Image Scan</a>
           </div>
